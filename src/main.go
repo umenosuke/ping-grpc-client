@@ -31,11 +31,17 @@ var exitCode = 0
 var logger = labelinglog.New("pinger-client", os.Stderr)
 
 var (
+	metaVersion  = "unknown"
+	metaRevision = "unknown"
+)
+
+var (
 	argDebugFlag             = flag.Bool("debug", false, "print debug log")
 	argServerAddress         = flag.String("S", "127.0.0.1:5555", "server address:port")
 	argNoUseTLS              = flag.Bool("noUseTLS", false, "enable tls")
 	argClientCertificatePath = flag.String("cCert", "./client_pinger.crt", "client certificate file path")
 	argClientPrivateKeyPath  = flag.String("cKey", "./client_pinger.pem", "client private key file path")
+	argShowVersionFlag       = flag.Bool("version", false, "show version")
 )
 
 func init() {
@@ -54,6 +60,11 @@ func main() {
 }
 
 func subMain() {
+	if *argShowVersionFlag {
+		fmt.Fprint(os.Stdout, "Version "+metaVersion+"\n"+"Revision "+metaRevision+"\n")
+		return
+	}
+
 	grpcDialOptions := make([]grpc.DialOption, 0)
 
 	{
