@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package uPinger;
+
+service Pinger {
+  rpc Start(StartRequest) returns(PingerID) {};
+  rpc Stop(PingerID) returns(Null) {};
+  rpc GetPingerList(Null) returns(PingerList) {};
+  rpc GetPingerInfo(PingerID) returns(PingerInfo) {};
+  rpc GetsStatistics(PingerID) returns(stream Statistics) {};
+  rpc GetsIcmpResult(PingerID) returns(stream IcmpResult) {};
+}
+
+message Null {}
+
+message StartRequest {
+  string Description = 1;
+  repeated IcmpTarget Targets = 2;
+  uint64 IntervalMillisec = 3;
+  uint64 TimeoutMillisec = 4;
+  uint64 StatisticsCountsNum = 5;
+  uint64 StopPingerSec = 6;
+  uint64 StatisticsIntervalSec = 7;
+
+  message IcmpTarget {
+    string TargetIP = 1;
+    string Comment = 2;
+  }
+}
+
+message Statistics {
+  repeated SuccessCount Targets = 1;
+
+  message SuccessCount {
+    fixed32 TargetID = 1;
+    int64 Count = 2;
+  }
+}
+
+message PingerID { uint32 PingerID = 1; }
+
+message PingerList {
+  repeated PingerSumally Pingers = 1;
+
+  message PingerSumally {
+    uint32 PingerID = 1;
+    string Description = 2;
+    uint64 StartUnixNanosec = 3;
+    uint64 ExpireUnixNanosec = 4;
+  }
+}
+
+message PingerInfo {
+  string Description = 1;
+  repeated IcmpTarget Targets = 2;
+  uint64 IntervalMillisec = 3;
+  uint64 TimeoutMillisec = 4;
+  uint64 StatisticsCountsNum = 5;
+  uint64 StatisticsIntervalSec = 6;
+  uint64 StartUnixNanosec = 8;
+  uint64 ExpireUnixNanosec = 7;
+
+  message IcmpTarget {
+    string TargetIP = 1;
+    string TargetBinIP = 4;
+    string Comment = 2;
+    fixed32 TargetID = 3;
+  }
+}
+
+message IcmpResult {
+  ResultType type = 1;
+  fixed32 TargetID = 2;
+  fixed32 BinPeerIP = 3;
+  int64 Sequence = 4;
+  int64 SendTimeUnixNanosec = 5;
+  int64 ReceiveTimeUnixNanosec = 6;
+
+  enum ResultType {
+    IcmpResultTypeUnknown = 0;
+    IcmpResultTypeReceive = 1;
+    IcmpResultTypeReceiveAfterTimeout = 2;
+    IcmpResultTypeTTLExceeded = 3;
+    IcmpResultTypeTimeout = 4;
+  }
+}

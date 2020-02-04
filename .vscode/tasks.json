@@ -1,0 +1,68 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "go-build",
+            "type": "shell",
+            "command": "GOOS=linux GOARCH=amd64 go build -ldflags \"-X main.metaVersion=$(git describe --tags --abbrev=0) -X main.metaRevision=$(git rev-parse --short HEAD)\" -o build/ping-grpc-client ./src",
+            "args": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": false,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [
+                "$go"
+            ]
+        },
+        {
+            "label": "go-build-windows",
+            "type": "shell",
+            "command": "GOOS=windows GOARCH=amd64 go build -ldflags \"-X main.metaVersion=$(git describe --tags --abbrev=0) -X main.metaRevision=$(git rev-parse --short HEAD)\" -o build/win-ping-grpc-client.exe ./src",
+            "args": [],
+            "presentation": {
+                "echo": false,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [
+                "$go"
+            ]
+        },
+        {
+            "label": "develop container build",
+            "type": "shell",
+            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml build",
+            "problemMatcher": []
+            
+        },
+        {
+            "label": "develop container start",
+            "type": "shell",
+            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml up",
+            "problemMatcher": []
+        },
+        {
+            "label": "develop container stop",
+            "type": "shell",
+            "command": "docker-compose -f .docker/docker-compose.yml down",
+            "problemMatcher": []
+        },
+        {
+            "label": "protobuf build in container",
+            "type": "shell",
+            "command": "docker exec -it proto_build_ping-grpc-client target_data/.script/proto_build.sh",
+            "problemMatcher": []
+        }
+    ]
+}

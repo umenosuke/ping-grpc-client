@@ -1,0 +1,10 @@
+version: '3'
+services:
+  proto_build-image_ping-grpc-client:
+    build: proto_build
+    tty: true
+    user: "${_USER}"
+    privileged: true
+    container_name: proto_build_ping-grpc-client
+    volumes:
+      - "../proto/:/target_data"
