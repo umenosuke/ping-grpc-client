@@ -4,7 +4,7 @@
         {
             "label": "go-build",
             "type": "shell",
-            "command": "GOOS=linux GOARCH=amd64 go build -o build/ping-grpc-client ./src",
+            "command": "GOOS=linux GOARCH=amd64 go build -ldflags \"-X main.metaVersion=$(git describe --tags --abbrev=0) -X main.metaRevision=$(git rev-parse --short HEAD)\" -o build/ping-grpc-client ./src",
             "args": [],
             "group": {
                 "kind": "build",
@@ -25,7 +25,7 @@
         {
             "label": "go-build-windows",
             "type": "shell",
-            "command": "GOOS=windows GOARCH=amd64 go build -o build/win-ping-grpc-client.exe ./src",
+            "command": "GOOS=windows GOARCH=amd64 go build -ldflags \"-X main.metaVersion=$(git describe --tags --abbrev=0) -X main.metaRevision=$(git rev-parse --short HEAD)\" -o build/win-ping-grpc-client.exe ./src",
             "args": [],
             "presentation": {
                 "echo": false,
