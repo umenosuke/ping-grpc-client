@@ -31,17 +31,17 @@ var exitCode = 0
 var logger = labelinglog.New("pinger-client", os.Stderr)
 
 var (
-	debugFlag             = flag.Bool("debug", false, "print debug log")
-	serverAddress         = flag.String("S", "127.0.0.1:5555", "server address:port")
-	noUseTLS              = flag.Bool("noUseTLS", false, "enable tls")
-	clientCertificatePath = flag.String("cCert", "./client_pinger.crt", "client certificate file path")
-	clientPrivateKeyPath  = flag.String("cKey", "./client_pinger.pem", "client private key file path")
+	argDebugFlag             = flag.Bool("debug", false, "print debug log")
+	argServerAddress         = flag.String("S", "127.0.0.1:5555", "server address:port")
+	argNoUseTLS              = flag.Bool("noUseTLS", false, "enable tls")
+	argClientCertificatePath = flag.String("cCert", "./client_pinger.crt", "client certificate file path")
+	argClientPrivateKeyPath  = flag.String("cKey", "./client_pinger.pem", "client private key file path")
 )
 
 func init() {
 	flag.Parse()
 
-	if *debugFlag {
+	if *argDebugFlag {
 		logger.SetEnableLevel(labelinglog.FlgsetAll)
 	} else {
 		logger.SetEnableLevel(labelinglog.FlgsetCommon)
@@ -64,11 +64,11 @@ func subMain() {
 		}))
 	}
 
-	if !*noUseTLS {
+	if !*argNoUseTLS {
 		clientCert, err :=
 			tls.LoadX509KeyPair(
-				*clientCertificatePath,
-				*clientPrivateKeyPath)
+				*argClientCertificatePath,
+				*argClientPrivateKeyPath)
 		if err != nil {
 			logger.Log(labelinglog.FlgFatal, err.Error())
 			exitCode = 1
@@ -93,7 +93,7 @@ func subMain() {
 		grpcDialOptions = append(grpcDialOptions, grpc.WithInsecure())
 	}
 
-	conn, err := grpc.Dial(*serverAddress, grpcDialOptions...)
+	conn, err := grpc.Dial(*argServerAddress, grpcDialOptions...)
 	if err != nil {
 		logger.Log(labelinglog.FlgFatal, err.Error())
 		exitCode = 1
@@ -195,7 +195,7 @@ func subMain() {
 		defer logger.Log(labelinglog.FlgDebug, "finish input")
 		var command string
 		for {
-			chCLIStr <- "\n" + *serverAddress + "> "
+			chCLIStr <- "\n" + *argServerAddress + "> "
 
 			select {
 			case <-childCtx.Done():
