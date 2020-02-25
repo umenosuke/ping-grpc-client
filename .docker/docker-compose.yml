@@ -1,6 +1,6 @@
 version: '3'
 services:
-  proto_build-image_ping-grpc-client:
+  proto_build_ping-grpc-client:
     build: proto_build
     tty: true
     user: "${_USER}"
