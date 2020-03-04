@@ -376,12 +376,8 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 		}
 
 		if res != nil {
-			msg := tCliMsg{
-				text:    "",
-				color:   cliColorDefault,
-				noBreak: false,
-			}
 			str := "\n"
+			strColor := cliColorDefault
 
 			counts := res.GetTargets()
 			timeNowStr := time.Now().Format("2006/01/02 15:04:05.000")
@@ -390,10 +386,10 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 				var ox string
 				if rate < rateThreshold {
 					ox = "X"
-					msg.color = cliColorRed
+					strColor = cliColorRed
 				} else {
 					ox = "O"
-					msg.color = cliColorGreen
+					strColor = cliColorGreen
 				}
 				targetID := c.GetTargetID()
 				str += fmt.Sprintf("S %s - %s - %15s - %03d%% in last %d - %s",
@@ -406,7 +402,11 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 				)
 			}
 
-			thisClient.chCLIStr <- msg
+			thisClient.chCLIStr <- tCliMsg{
+				text:    str,
+				color:   strColor,
+				noBreak: false,
+			}
 		}
 	}
 }
