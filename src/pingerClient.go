@@ -223,36 +223,36 @@ func (thisClient *tClientWrap) result(ctx context.Context) {
 		if result != nil {
 			switch result.GetType() {
 			case pb.IcmpResult_IcmpResultTypeReceive:
-				thisClient.chCLIStr <- fmt.Sprintf("R O %s - %15s - %05d - %7.2fms - %s\n",
+				thisClient.chCLIStr <- "\x1b[42m\x1b[37m" + fmt.Sprintf("R O %s - %15s - %05d - %7.2fms - %s",
 					time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 					targets[result.GetTargetID()].IPAddress,
 					result.GetSequence(),
 					float64(result.GetReceiveTimeUnixNanosec()-result.GetSendTimeUnixNanosec())/1000/1000,
 					targets[result.GetTargetID()].Comment,
-				)
+				) + "\x1b[49m\x1b[39m\n"
 			case pb.IcmpResult_IcmpResultTypeReceiveAfterTimeout:
-				thisClient.chCLIStr <- fmt.Sprintf("R ? %s - %15s - %05d - %7.2fms after Timeout - %s\n",
+				thisClient.chCLIStr <- "\x1b[43m\x1b[37m" + fmt.Sprintf("R ? %s - %15s - %05d - %7.2fms after Timeout - %s",
 					time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 					targets[result.GetTargetID()].IPAddress,
 					result.GetSequence(),
 					float64(result.GetReceiveTimeUnixNanosec()-result.GetSendTimeUnixNanosec())/1000/1000,
 					targets[result.GetTargetID()].Comment,
-				)
+				) + "\x1b[49m\x1b[39m\n"
 			case pb.IcmpResult_IcmpResultTypeTTLExceeded:
-				thisClient.chCLIStr <- fmt.Sprintf("R X %s - %15s - %05d - TTL Exceeded from %s - %s\n",
+				thisClient.chCLIStr <- "\x1b[41m\x1b[37m" + fmt.Sprintf("R X %s - %15s - %05d - TTL Exceeded from %s - %s",
 					time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 					targets[result.GetTargetID()].IPAddress,
 					result.GetSequence(),
 					pinger4.BinIPv4Address2String(pinger4.BinIPv4Address(result.GetBinPeerIP())),
 					targets[result.GetTargetID()].Comment,
-				)
+				) + "\x1b[49m\x1b[39m\n"
 			case pb.IcmpResult_IcmpResultTypeTimeout:
-				thisClient.chCLIStr <- fmt.Sprintf("R X %s - %15s - %05d - Timeout!! - %s\n",
+				thisClient.chCLIStr <- "\x1b[41m\x1b[37m" + fmt.Sprintf("R X %s - %15s - %05d - Timeout!! - %s",
 					time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 					targets[result.GetTargetID()].IPAddress,
 					result.GetSequence(),
 					targets[result.GetTargetID()].Comment,
-				)
+				) + "\x1b[49m\x1b[39m\n"
 			}
 		}
 	}
@@ -333,18 +333,20 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 
 		if res != nil {
 			counts := res.GetTargets()
-			str := ""
+			str := "\n"
 			timeNowStr := time.Now().Format("2006/01/02 15:04:05.000")
 			for _, c := range counts {
 				rate := c.GetCount() * 100 / resultListNum
 				var ox string
 				if rate < rateThreshold {
 					ox = "X"
+					str += "\x1b[41m\x1b[37m"
 				} else {
 					ox = "O"
+					str += "\x1b[42m\x1b[37m"
 				}
 				targetID := c.GetTargetID()
-				str += fmt.Sprintf("S %s - %s - %15s - %03d%% in last %d - %s\n",
+				str += fmt.Sprintf("S %s - %s - %15s - %03d%% in last %d - %s",
 					ox,
 					timeNowStr,
 					targets[targetID].IPAddress,
@@ -352,6 +354,7 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 					resultListNum,
 					targets[targetID].Comment,
 				)
+				str += "\x1b[49m\x1b[39m\n"
 			}
 			thisClient.chCLIStr <- str
 		}
