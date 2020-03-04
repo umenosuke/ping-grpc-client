@@ -180,14 +180,14 @@ func subMain() {
 					case cliColorYellow:
 						str += "\x1b[43m\x1b[37m"
 					case cliColorDefault:
-						str += "\x1b[49m\x1b[39m\n"
+						str += "\x1b[49m\x1b[39m"
 					}
 				}
 
 				str += msg.text
 
 				if !isWindows {
-					str += "\x1b[49m\x1b[39m\n"
+					str += "\x1b[49m\x1b[39m"
 				}
 
 				if msg.noBreak {
