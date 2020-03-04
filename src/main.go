@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,6 +24,22 @@ import (
 	"github.com/umenosuke/labelinglog"
 	pb "github.com/umenosuke/ping-grpc-client/proto/go/pingGrpc"
 )
+
+type tCliColor int
+
+const (
+	cliColorDefault = tCliColor(iota)
+	cliColorRed
+	cliColorGreen
+	cliColorBlue
+	cliColorYellow
+)
+
+type tCliMsg struct {
+	text    string
+	color   tCliColor
+	noBreak bool
+}
 
 const terminateTimeOutSec = 15
 
@@ -140,16 +157,44 @@ func subMain() {
 		}
 	})()
 
-	chCLIStr := make(chan string, 200)
+	chCLIStr := make(chan tCliMsg, 200)
 	wgFinish.Add(1)
 	go (func() {
 		defer wgFinish.Done()
 
+		isWindows := runtime.GOOS == "windows"
 		for {
 			select {
 			case <-time.After(time.Second):
-			case str := <-chCLIStr:
-				fmt.Print(str)
+			case msg := <-chCLIStr:
+				str := ""
+
+				if !isWindows {
+					switch msg.color {
+					case cliColorRed:
+						str += "\x1b[41m\x1b[37m"
+					case cliColorGreen:
+						str += "\x1b[42m\x1b[37m"
+					case cliColorBlue:
+						str += "\x1b[44m\x1b[37m"
+					case cliColorYellow:
+						str += "\x1b[43m\x1b[37m"
+					case cliColorDefault:
+						str += "\x1b[49m\x1b[39m\n"
+					}
+				}
+
+				str += msg.text
+
+				if !isWindows {
+					str += "\x1b[49m\x1b[39m\n"
+				}
+
+				if msg.noBreak {
+					fmt.Print(str)
+				} else {
+					fmt.Println(str)
+				}
 				continue
 			}
 			select {
@@ -205,8 +250,13 @@ func subMain() {
 		logger.Log(labelinglog.FlgDebug, "start input")
 		defer logger.Log(labelinglog.FlgDebug, "finish input")
 		var command string
+		prompt := tCliMsg{
+			text:    "\n" + *argServerAddress + "> ",
+			color:   cliColorDefault,
+			noBreak: true,
+		}
 		for {
-			chCLIStr <- "\n" + *argServerAddress + "> "
+			chCLIStr <- prompt
 
 			select {
 			case <-childCtx.Done():
@@ -220,56 +270,97 @@ func subMain() {
 
 			switch command {
 			case "s", "st":
-				str := ""
-				str += "start : start pinger\n"
-				str += "stop  : stop pinger\n"
-				chCLIStr <- str
+				chCLIStr <- tCliMsg{
+					text: "" +
+						"start : start pinger\n" +
+						"stop  : stop pinger",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 			case "sta", "star", "start":
-				chCLIStr <- "[start]\n"
+				chCLIStr <- tCliMsg{
+					text:    "[start]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 				client.start(childCtx)
 			case "sto", "stop":
-				chCLIStr <- "[stop]\n"
+				chCLIStr <- tCliMsg{
+					text:    "[stop]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 				client.stop(childCtx)
 			case "l", "li", "lis", "list":
-				chCLIStr <- "[list]\n"
+				chCLIStr <- tCliMsg{
+					text:    "[list]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 				client.list(childCtx)
 			case "i", "in", "inf", "info":
-				chCLIStr <- "[info]\n"
+				chCLIStr <- tCliMsg{
+					text:    "[info]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 				client.info(childCtx)
 			case "r", "re", "res", "resu", "resul", "result":
-				chCLIStr <- "[result]\n"
+				chCLIStr <- tCliMsg{
+					text:    "[result]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 				client.result(childCtx)
 			case "c", "co", "cou", "coun", "count":
-				chCLIStr <- "[count]\n"
+				chCLIStr <- tCliMsg{
+					text:    "[count]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 				client.count(childCtx, 80)
 			case "q", "qu", "qui", "quit":
-				chCLIStr <- "[quit]\n"
+				chCLIStr <- tCliMsg{
+					text:    "[quit]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 				return
 			case "e", "ex", "exi", "exit":
-				chCLIStr <- "[exit]\n"
+				chCLIStr <- tCliMsg{
+					text:    "[exit]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 				return
 			case "?", "h", "he", "hel", "help":
-				str := ""
-				str += "start  : start pinger\n"
-				str += "stop   : stop pinger\n"
-				str += "\n"
-				str += "list   : show pinger list\n"
-				str += "info   : show pinger info\n"
-				str += "result : show ping result\n"
-				str += "count  : show ping statistics\n"
-				str += "\n"
-				str += "quit   : exit client\n"
-				str += "exit   : exit client\n"
-				str += "\n"
-				str += "help   : (this) show help\n"
-				chCLIStr <- str
+				chCLIStr <- tCliMsg{
+					text: "" +
+						"start  : start pinger\n" +
+						"stop   : stop pinger\n" +
+						"\n" +
+						"list   : show pinger list\n" +
+						"info   : show pinger info\n" +
+						"result : show ping result\n" +
+						"count  : show ping statistics\n" +
+						"\n" +
+						"quit   : exit client\n" +
+						"exit   : exit client\n" +
+						"\n" +
+						"help   : (this) show help",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 			case "":
 				logger.Log(labelinglog.FlgDebug, "input empty")
 			default:
-				str := ""
-				str += "unknown command \"" + command + "\"\n"
-				str += "? : show commands\n"
-				chCLIStr <- str
+				chCLIStr <- tCliMsg{
+					text: "" +
+						"unknown command \"" + command + "\"\n" +
+						"? : show commands",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
 			}
 		}
 	})()

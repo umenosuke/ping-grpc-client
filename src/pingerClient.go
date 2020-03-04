@@ -20,11 +20,15 @@ type tClientWrap struct {
 	client      pb.PingerClient
 	chStdinText <-chan string
 	chCancel    <-chan struct{}
-	chCLIStr    chan<- string
+	chCLIStr    chan<- tCliMsg
 }
 
 func (thisClient *tClientWrap) start(ctx context.Context) {
-	thisClient.chCLIStr <- "Description? "
+	thisClient.chCLIStr <- tCliMsg{
+		text:    "Description? ",
+		color:   cliColorDefault,
+		noBreak: true,
+	}
 	var descStr string
 	select {
 	case <-ctx.Done():
@@ -37,7 +41,11 @@ func (thisClient *tClientWrap) start(ctx context.Context) {
 	targetList := make([]*pb.StartRequest_IcmpTarget, 0)
 	reg := regexp.MustCompile(`^([^# \t]*)[# \t]*(.*)$`)
 	for {
-		thisClient.chCLIStr <- "target [IP Comment]? "
+		thisClient.chCLIStr <- tCliMsg{
+			text:    "target [IP Comment]? ",
+			color:   cliColorDefault,
+			noBreak: true,
+		}
 		var targetStr string
 		select {
 		case <-ctx.Done():
@@ -74,7 +82,11 @@ func (thisClient *tClientWrap) start(ctx context.Context) {
 
 	res, err := thisClient.client.Start(ctx, req)
 	if res != nil {
-		thisClient.chCLIStr <- "start ID: " + strconv.FormatUint(uint64(res.GetPingerID()), 10) + "\n"
+		thisClient.chCLIStr <- tCliMsg{
+			text:    "start ID: " + strconv.FormatUint(uint64(res.GetPingerID()), 10),
+			color:   cliColorDefault,
+			noBreak: false,
+		}
 	}
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
@@ -90,7 +102,11 @@ func (thisClient *tClientWrap) start(ctx context.Context) {
 }
 
 func (thisClient *tClientWrap) stop(ctx context.Context) {
-	thisClient.chCLIStr <- "PingerID? "
+	thisClient.chCLIStr <- tCliMsg{
+		text:    "PingerID? ",
+		color:   cliColorDefault,
+		noBreak: true,
+	}
 	var pingerID string
 	select {
 	case <-ctx.Done():
@@ -123,7 +139,11 @@ func (thisClient *tClientWrap) list(ctx context.Context) {
 }
 
 func (thisClient *tClientWrap) info(ctx context.Context) {
-	thisClient.chCLIStr <- "PingerID? "
+	thisClient.chCLIStr <- tCliMsg{
+		text:    "PingerID? ",
+		color:   cliColorDefault,
+		noBreak: true,
+	}
 	var pingerID string
 	select {
 	case <-ctx.Done():
@@ -149,7 +169,11 @@ func (thisClient *tClientWrap) info(ctx context.Context) {
 }
 
 func (thisClient *tClientWrap) result(ctx context.Context) {
-	thisClient.chCLIStr <- "PingerID? "
+	thisClient.chCLIStr <- tCliMsg{
+		text:    "PingerID? ",
+		color:   cliColorDefault,
+		noBreak: true,
+	}
 	var pingerID string
 	select {
 	case <-ctx.Done():
@@ -223,43 +247,63 @@ func (thisClient *tClientWrap) result(ctx context.Context) {
 		if result != nil {
 			switch result.GetType() {
 			case pb.IcmpResult_IcmpResultTypeReceive:
-				thisClient.chCLIStr <- "\x1b[42m\x1b[37m" + fmt.Sprintf("R O %s - %15s - %05d - %7.2fms - %s",
-					time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
-					targets[result.GetTargetID()].IPAddress,
-					result.GetSequence(),
-					float64(result.GetReceiveTimeUnixNanosec()-result.GetSendTimeUnixNanosec())/1000/1000,
-					targets[result.GetTargetID()].Comment,
-				) + "\x1b[49m\x1b[39m\n"
+				thisClient.chCLIStr <- tCliMsg{
+					text: fmt.Sprintf("R O %s - %15s - %05d - %7.2fms - %s",
+						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
+						targets[result.GetTargetID()].IPAddress,
+						result.GetSequence(),
+						float64(result.GetReceiveTimeUnixNanosec()-result.GetSendTimeUnixNanosec())/1000/1000,
+						targets[result.GetTargetID()].Comment,
+					),
+					color:   cliColorGreen,
+					noBreak: false,
+				}
 			case pb.IcmpResult_IcmpResultTypeReceiveAfterTimeout:
-				thisClient.chCLIStr <- "\x1b[43m\x1b[37m" + fmt.Sprintf("R ? %s - %15s - %05d - %7.2fms after Timeout - %s",
-					time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
-					targets[result.GetTargetID()].IPAddress,
-					result.GetSequence(),
-					float64(result.GetReceiveTimeUnixNanosec()-result.GetSendTimeUnixNanosec())/1000/1000,
-					targets[result.GetTargetID()].Comment,
-				) + "\x1b[49m\x1b[39m\n"
+				thisClient.chCLIStr <- tCliMsg{
+					text: fmt.Sprintf("R ? %s - %15s - %05d - %7.2fms after Timeout - %s",
+						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
+						targets[result.GetTargetID()].IPAddress,
+						result.GetSequence(),
+						float64(result.GetReceiveTimeUnixNanosec()-result.GetSendTimeUnixNanosec())/1000/1000,
+						targets[result.GetTargetID()].Comment,
+					),
+					color:   cliColorYellow,
+					noBreak: false,
+				}
 			case pb.IcmpResult_IcmpResultTypeTTLExceeded:
-				thisClient.chCLIStr <- "\x1b[41m\x1b[37m" + fmt.Sprintf("R X %s - %15s - %05d - TTL Exceeded from %s - %s",
-					time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
-					targets[result.GetTargetID()].IPAddress,
-					result.GetSequence(),
-					pinger4.BinIPv4Address2String(pinger4.BinIPv4Address(result.GetBinPeerIP())),
-					targets[result.GetTargetID()].Comment,
-				) + "\x1b[49m\x1b[39m\n"
+				thisClient.chCLIStr <- tCliMsg{
+					text: fmt.Sprintf("R X %s - %15s - %05d - TTL Exceeded from %s - %s",
+						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
+						targets[result.GetTargetID()].IPAddress,
+						result.GetSequence(),
+						pinger4.BinIPv4Address2String(pinger4.BinIPv4Address(result.GetBinPeerIP())),
+						targets[result.GetTargetID()].Comment,
+					),
+					color:   cliColorRed,
+					noBreak: false,
+				}
 			case pb.IcmpResult_IcmpResultTypeTimeout:
-				thisClient.chCLIStr <- "\x1b[41m\x1b[37m" + fmt.Sprintf("R X %s - %15s - %05d - Timeout!! - %s",
-					time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
-					targets[result.GetTargetID()].IPAddress,
-					result.GetSequence(),
-					targets[result.GetTargetID()].Comment,
-				) + "\x1b[49m\x1b[39m\n"
+				thisClient.chCLIStr <- tCliMsg{
+					text: fmt.Sprintf("R X %s - %15s - %05d - Timeout!! - %s",
+						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
+						targets[result.GetTargetID()].IPAddress,
+						result.GetSequence(),
+						targets[result.GetTargetID()].Comment,
+					),
+					color:   cliColorRed,
+					noBreak: false,
+				}
 			}
 		}
 	}
 }
 
 func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
-	thisClient.chCLIStr <- "PingerID? "
+	thisClient.chCLIStr <- tCliMsg{
+		text:    "PingerID? ",
+		color:   cliColorDefault,
+		noBreak: true,
+	}
 	var pingerID string
 	select {
 	case <-ctx.Done():
@@ -332,18 +376,24 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 		}
 
 		if res != nil {
-			counts := res.GetTargets()
+			msg := tCliMsg{
+				text:    "",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
 			str := "\n"
+
+			counts := res.GetTargets()
 			timeNowStr := time.Now().Format("2006/01/02 15:04:05.000")
 			for _, c := range counts {
 				rate := c.GetCount() * 100 / resultListNum
 				var ox string
 				if rate < rateThreshold {
 					ox = "X"
-					str += "\x1b[41m\x1b[37m"
+					msg.color = cliColorRed
 				} else {
 					ox = "O"
-					str += "\x1b[42m\x1b[37m"
+					msg.color = cliColorGreen
 				}
 				targetID := c.GetTargetID()
 				str += fmt.Sprintf("S %s - %s - %15s - %03d%% in last %d - %s",
@@ -354,9 +404,9 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 					resultListNum,
 					targets[targetID].Comment,
 				)
-				str += "\x1b[49m\x1b[39m\n"
 			}
-			thisClient.chCLIStr <- str
+
+			thisClient.chCLIStr <- msg
 		}
 	}
 }
@@ -379,9 +429,13 @@ func (thisClient *tClientWrap) printInfo(info *pb.PingerInfo) {
 	str += "StatisticsIntervalSec : " + strconv.FormatUint(info.GetStatisticsIntervalSec(), 10) + "\n"
 	str += "StartUnixNanosec      : " + time.Unix(0, int64(info.GetStartUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
 	str += "ExpireUnixNanosec     : " + time.Unix(0, int64(info.GetExpireUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
-	str += "================================================================\n"
+	str += "================================================================"
 
-	thisClient.chCLIStr <- str
+	thisClient.chCLIStr <- tCliMsg{
+		text:    str,
+		color:   cliColorDefault,
+		noBreak: false,
+	}
 }
 
 func (thisClient *tClientWrap) printList(list *pb.PingerList) {
@@ -393,8 +447,12 @@ func (thisClient *tClientWrap) printList(list *pb.PingerList) {
 		str += "Description       : " + p.GetDescription() + "\n"
 		str += "StartUnixNanosec  : " + time.Unix(0, int64(p.GetStartUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
 		str += "ExpireUnixNanosec : " + time.Unix(0, int64(p.GetExpireUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
-		str += "================================================================\n"
+		str += "================================================================"
 	}
 
-	thisClient.chCLIStr <- str
+	thisClient.chCLIStr <- tCliMsg{
+		text:    str,
+		color:   cliColorDefault,
+		noBreak: false,
+	}
 }
