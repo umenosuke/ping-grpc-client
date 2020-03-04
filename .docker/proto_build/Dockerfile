@@ -3,7 +3,7 @@ FROM centos:7
 RUN yum update -y
 RUN yum install -y wget unzip git
 
-ARG GO_VERSION='1.13.5'
+ARG GO_VERSION='1.14'
 ARG GO_BINARY='go'"${GO_VERSION}"'.linux-amd64.tar.gz'
 RUN wget https://dl.google.com/go/"${GO_BINARY}" -O /tmp/"${GO_BINARY}"
 RUN tar -C /usr/local -xzf /tmp/"${GO_BINARY}"
@@ -15,7 +15,7 @@ RUN echo 'export GOPATH="'"${GOPATH}"'"' >> /etc/profile.d/myGo.sh
 RUN echo 'export PATH=${PATH}:${GOROOT}/bin:${GOPATH}/bin' >> /etc/profile.d/myGo.sh
 ENV PATH=${PATH}:${GOROOT}/bin:${GOPATH}/bin
 
-ARG PROTOC_VERSION="3.11.2"
+ARG PROTOC_VERSION="3.11.4"
 ARG PROTOC_BINARY='protoc-'"${PROTOC_VERSION}"'-linux-x86_64.zip'
 RUN wget https://github.com/protocolbuffers/protobuf/releases/download/v"${PROTOC_VERSION}"/"${PROTOC_BINARY}" -O /tmp/"${PROTOC_BINARY}"
 RUN unzip -d /usr/local/protoc /tmp/"${PROTOC_BINARY}"
@@ -23,10 +23,10 @@ RUN chmod -R +x /usr/local/protoc
 RUN echo 'export PATH=${PATH}:/usr/local/protoc/bin' >> /etc/profile.d/myProtoc.sh
 ENV PATH=${PATH}:/usr/local/protoc/bin
 
-RUN go get -u github.com/golang/protobuf/protoc-gen-go
-RUN go get -u google.golang.org/grpc
-
-RUN go get -u github.com/tmc/grpcutil/protoc-gen-tstypes
+ARG PROTOC_GEN_GO_VERSION="v1.3.4"
+RUN go get -d -u github.com/golang/protobuf/protoc-gen-go
+RUN cd "$(go env GOPATH)"/src/github.com/golang/protobuf && git checkout "${PROTOC_GEN_GO_VERSION}"
+RUN go install github.com/golang/protobuf/protoc-gen-go
 
 VOLUME /target_data
 
