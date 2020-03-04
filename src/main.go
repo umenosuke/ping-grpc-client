@@ -384,5 +384,9 @@ func subMain() {
 			logger.Log(labelinglog.FlgWarn, "forced termination")
 		}
 	}
-	fmt.Println("\x1b[49m\x1b[39m\x1b[0m" + "bye")
+
+	if runtime.GOOS != "windows" {
+		fmt.Print("\x1b[49m\x1b[39m\x1b[0m")
+	}
+	fmt.Println("bye")
 }
