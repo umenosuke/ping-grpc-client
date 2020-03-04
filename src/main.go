@@ -20,8 +20,8 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 
-	"umenosuke.net/labelinglog"
-	pb "umenosuke.net/ping-grpc/proto/go/pingGrpc"
+	"github.com/umenosuke/labelinglog"
+	pb "github.com/umenosuke/ping-grpc-client/proto/go/pingGrpc"
 )
 
 const terminateTimeOutSec = 15

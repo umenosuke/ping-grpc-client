@@ -10,9 +10,10 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"umenosuke.net/labelinglog"
-	pb "umenosuke.net/ping-grpc/proto/go/pingGrpc"
-	"umenosuke.net/pinger4"
+
+	"github.com/umenosuke/labelinglog"
+	pb "github.com/umenosuke/ping-grpc-client/proto/go/pingGrpc"
+	"github.com/umenosuke/pinger4"
 )
 
 type tClientWrap struct {
