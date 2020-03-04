@@ -8,3 +8,11 @@ services:
     container_name: proto_build_ping-grpc-client
     volumes:
       - "../proto/:/target_data"
+  go_build_ping-grpc-client:
+    build: go_build
+    tty: true
+    user: "${_USER}"
+    privileged: true
+    container_name: go_build_ping-grpc-client
+    volumes:
+      - "../:/target_data/ping-grpc-client"
