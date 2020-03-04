@@ -264,7 +264,7 @@ func subMain() {
 				str += "help   : (this) show help\n"
 				chCLIStr <- str
 			case "":
-				logger.Log(labelinglog.FlgDebug, "imput empty")
+				logger.Log(labelinglog.FlgDebug, "input empty")
 			default:
 				str := ""
 				str += "unknown command \"" + command + "\"\n"
