@@ -376,12 +376,18 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 		}
 
 		if res != nil {
-			str := "\n"
-			strColor := cliColorDefault
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
 
 			counts := res.GetTargets()
 			timeNowStr := time.Now().Format("2006/01/02 15:04:05.000")
 			for _, c := range counts {
+				str := ""
+				strColor := cliColorDefault
+
 				rate := c.GetCount() * 100 / resultListNum
 				var ox string
 				if rate < rateThreshold {
@@ -400,12 +406,12 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 					resultListNum,
 					targets[targetID].Comment,
 				)
-			}
 
-			thisClient.chCLIStr <- tCliMsg{
-				text:    str,
-				color:   strColor,
-				noBreak: false,
+				thisClient.chCLIStr <- tCliMsg{
+					text:    str,
+					color:   strColor,
+					noBreak: false,
+				}
 			}
 		}
 	}
