@@ -10,9 +10,11 @@ RUN tar -C /usr/local -xzf /tmp/"${GO_BINARY}"
 ENV GOROOT=/usr/local/go
 RUN echo 'export GOROOT="'"${GOROOT}"'"' >> /etc/profile.d/myGo.sh
 ENV GOPATH=/usr/local/gopath
-RUN mkdir -p ${GOPATH}
+RUN mkdir -p ${GOPATH} && chmod 777 ${GOPATH}
 RUN echo 'export GOPATH="'"${GOPATH}"'"' >> /etc/profile.d/myGo.sh
 RUN echo 'export PATH=${PATH}:${GOROOT}/bin:${GOPATH}/bin' >> /etc/profile.d/myGo.sh
+ENV GOCACHE=/.cache/go-build
+RUN mkdir -p ${GOCACHE} && chmod 777 ${GOCACHE}
 ENV PATH=${PATH}:${GOROOT}/bin:${GOPATH}/bin
 
 VOLUME /target_data
