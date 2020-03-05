@@ -55,7 +55,7 @@ var (
 var (
 	argDebugFlag             = flag.Bool("debug", false, "print debug log")
 	argServerAddress         = flag.String("S", "127.0.0.1:5555", "server address:port")
-	argNoUseTLS              = flag.Bool("noUseTLS", false, "enable tls")
+	argNoUseTLS              = flag.Bool("noUseTLS", false, "disable tls")
 	argClientCertificatePath = flag.String("cCert", "./client_pinger.crt", "client certificate file path")
 	argClientPrivateKeyPath  = flag.String("cKey", "./client_pinger.pem", "client private key file path")
 	argShowVersionFlag       = flag.Bool("version", false, "show version")
