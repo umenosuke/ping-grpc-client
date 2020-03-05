@@ -453,12 +453,12 @@ func (thisClient *tClientWrap) printList(list *pb.PingerList) {
 		str += "Description       : " + p.GetDescription() + "\n"
 		str += "StartUnixNanosec  : " + time.Unix(0, int64(p.GetStartUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
 		str += "ExpireUnixNanosec : " + time.Unix(0, int64(p.GetExpireUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
-		str += "================================================================"
+		str += "================================================================\n"
 	}
 
 	thisClient.chCLIStr <- tCliMsg{
 		text:    str,
 		color:   cliColorDefault,
-		noBreak: false,
+		noBreak: true,
 	}
 }
