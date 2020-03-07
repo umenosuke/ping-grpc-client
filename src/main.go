@@ -84,6 +84,22 @@ func subMain() {
 		return
 	}
 
+	if *argShowConfigFlg {
+		fmt.Fprint(os.Stdout, configStringify(DefaultConfig())+"\n")
+		return
+	}
+
+	config, err := configLoad(*argConfigPath)
+	if err != nil {
+		logger.Log(labelinglog.FlgFatal, err.Error())
+		exitCode = 1
+		return
+	}
+	if *argDebugFlag {
+		logger.Log(labelinglog.FlgDebug, "now config")
+		logger.LogMultiLines(labelinglog.FlgDebug, configStringify(config))
+	}
+
 	grpcDialOptions, err := getGrpcDialOptions()
 	if err != nil {
 		logger.Log(labelinglog.FlgFatal, err.Error())
