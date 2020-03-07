@@ -58,6 +58,8 @@ var (
 	argNoUseTLS              = flag.Bool("noUseTLS", false, "disable tls")
 	argClientCertificatePath = flag.String("cCert", "./client_pinger.crt", "client certificate file path")
 	argClientPrivateKeyPath  = flag.String("cKey", "./client_pinger.pem", "client private key file path")
+	argConfigPath            = flag.String("configPath", "", "config file path")
+	argShowConfigFlg         = flag.Bool("printConfig", false, "show default config")
 	argShowVersionFlag       = flag.Bool("version", false, "show version")
 )
 
@@ -82,43 +84,11 @@ func subMain() {
 		return
 	}
 
-	grpcDialOptions := make([]grpc.DialOption, 0)
-
-	{
-		grpcDialOptions = append(grpcDialOptions, grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:                1 * time.Second,
-			Timeout:             10 * time.Second,
-			PermitWithoutStream: true,
-		}))
-	}
-
-	if !*argNoUseTLS {
-		clientCert, err :=
-			tls.LoadX509KeyPair(
-				*argClientCertificatePath,
-				*argClientPrivateKeyPath)
-		if err != nil {
-			logger.Log(labelinglog.FlgFatal, err.Error())
-			exitCode = 1
-			return
-		}
-
-		caCert, err := ioutil.ReadFile("ca.crt")
-		if err != nil {
-			logger.Log(labelinglog.FlgFatal, err.Error())
-			exitCode = 1
-			return
-		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-		creds := credentials.NewTLS(&tls.Config{
-			Certificates: []tls.Certificate{clientCert},
-			RootCAs:      caCertPool,
-		})
-
-		grpcDialOptions = append(grpcDialOptions, grpc.WithTransportCredentials(creds))
-	} else {
-		grpcDialOptions = append(grpcDialOptions, grpc.WithInsecure())
+	grpcDialOptions, err := getGrpcDialOptions()
+	if err != nil {
+		logger.Log(labelinglog.FlgFatal, err.Error())
+		exitCode = 1
+		return
 	}
 
 	conn, err := grpc.Dial(*argServerAddress, grpcDialOptions...)
@@ -389,4 +359,43 @@ func subMain() {
 		fmt.Print("\x1b[49m\x1b[39m\x1b[0m")
 	}
 	fmt.Println("bye")
+}
+
+func getGrpcDialOptions() ([]grpc.DialOption, error) {
+	grpcDialOptions := make([]grpc.DialOption, 0)
+
+	{
+		grpcDialOptions = append(grpcDialOptions, grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                1 * time.Second,
+			Timeout:             10 * time.Second,
+			PermitWithoutStream: true,
+		}))
+	}
+
+	if !*argNoUseTLS {
+		clientCert, err :=
+			tls.LoadX509KeyPair(
+				*argClientCertificatePath,
+				*argClientPrivateKeyPath)
+		if err != nil {
+			return nil, err
+		}
+
+		caCert, err := ioutil.ReadFile("ca.crt")
+		if err != nil {
+			return nil, err
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		creds := credentials.NewTLS(&tls.Config{
+			Certificates: []tls.Certificate{clientCert},
+			RootCAs:      caCertPool,
+		})
+
+		grpcDialOptions = append(grpcDialOptions, grpc.WithTransportCredentials(creds))
+	} else {
+		grpcDialOptions = append(grpcDialOptions, grpc.WithInsecure())
+	}
+
+	return grpcDialOptions, nil
 }
