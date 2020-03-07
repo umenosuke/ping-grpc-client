@@ -25,6 +25,8 @@
 ./ping-grpc-client -S "(サーバーの)`IP`:`port`" -noUseTLS
 ```
 
+[コマンドの中身の説明](https://github.com/umenosuke/ping-grpc-client/blob/master/README_command.md)
+
 ### TLS利用する場合
 
 [ここ](https://github.com/umenosuke/x509helper)などを参考に
