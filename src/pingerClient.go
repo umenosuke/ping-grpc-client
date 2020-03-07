@@ -249,7 +249,7 @@ func (thisClient *tClientWrap) result(ctx context.Context) {
 			switch result.GetType() {
 			case pb.IcmpResult_IcmpResultTypeReceive:
 				thisClient.chCLIStr <- tCliMsg{
-					text: fmt.Sprintf("R O %s - %15s - %05d - %7.2fms - %s",
+					text: fmt.Sprintf("R O - %s - %15s - %05d - %7.2fms - %s",
 						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 						targets[result.GetTargetID()].IPAddress,
 						result.GetSequence(),
@@ -261,7 +261,7 @@ func (thisClient *tClientWrap) result(ctx context.Context) {
 				}
 			case pb.IcmpResult_IcmpResultTypeReceiveAfterTimeout:
 				thisClient.chCLIStr <- tCliMsg{
-					text: fmt.Sprintf("R ? %s - %15s - %05d - %7.2fms after Timeout - %s",
+					text: fmt.Sprintf("R ? - %s - %15s - %05d - %7.2fms after Timeout - %s",
 						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 						targets[result.GetTargetID()].IPAddress,
 						result.GetSequence(),
@@ -273,7 +273,7 @@ func (thisClient *tClientWrap) result(ctx context.Context) {
 				}
 			case pb.IcmpResult_IcmpResultTypeTTLExceeded:
 				thisClient.chCLIStr <- tCliMsg{
-					text: fmt.Sprintf("R X %s - %15s - %05d - TTL Exceeded from %s - %s",
+					text: fmt.Sprintf("R X - %s - %15s - %05d - TTL Exceeded from %s - %s",
 						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 						targets[result.GetTargetID()].IPAddress,
 						result.GetSequence(),
@@ -285,7 +285,7 @@ func (thisClient *tClientWrap) result(ctx context.Context) {
 				}
 			case pb.IcmpResult_IcmpResultTypeTimeout:
 				thisClient.chCLIStr <- tCliMsg{
-					text: fmt.Sprintf("R X %s - %15s - %05d - Timeout!! - %s",
+					text: fmt.Sprintf("R X - %s - %15s - %05d - Timeout!! - %s",
 						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 						targets[result.GetTargetID()].IPAddress,
 						result.GetSequence(),
