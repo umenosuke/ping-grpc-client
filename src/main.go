@@ -150,14 +150,14 @@ func subMain() {
 	go (func() {
 		defer wgFinish.Done()
 
-		isWindows := runtime.GOOS == "windows"
+		enableColor := runtime.GOOS != "windows"
 		for {
 			select {
 			case <-time.After(time.Second):
 			case msg := <-chCLIStr:
 				str := ""
 
-				if !isWindows {
+				if enableColor {
 					switch msg.color {
 					case cliColorRed:
 						str += "\x1b[41m\x1b[37m"
@@ -174,7 +174,7 @@ func subMain() {
 
 				str += msg.text
 
-				if !isWindows {
+				if enableColor {
 					str += "\x1b[49m\x1b[39m"
 				}
 
