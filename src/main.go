@@ -60,6 +60,7 @@ var (
 	argClientCertificatePath = flag.String("cCert", "./client_pinger.crt", "client certificate file path")
 	argClientPrivateKeyPath  = flag.String("cKey", "./client_pinger.pem", "client private key file path")
 	argConfigPath            = flag.String("configPath", "", "config file path")
+	argNoColor               = flag.Bool("noColor", false, "disable colorful output")
 	argShowConfigFlg         = flag.Bool("printConfig", false, "show default config")
 	argShowVersionFlag       = flag.Bool("version", false, "show version")
 )
@@ -150,7 +151,7 @@ func subMain() {
 	go (func() {
 		defer wgFinish.Done()
 
-		enableColor := runtime.GOOS != "windows"
+		enableColor := !*argNoColor && runtime.GOOS != "windows"
 		for {
 			select {
 			case <-time.After(time.Second):
