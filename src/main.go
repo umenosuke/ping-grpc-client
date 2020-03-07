@@ -134,6 +134,7 @@ func subMain() {
 			case sig := <-c:
 				switch sig {
 				case syscall.SIGINT:
+					fmt.Println()
 					logger.Log(labelinglog.FlgDebug, "request stop, SIGINT")
 					chCancel <- struct{}{}
 				default:
