@@ -7,11 +7,31 @@ import (
 
 // Config 設定ファイルの中身
 type Config struct {
+	//pingを撃ち続ける時間(秒)
+	StopPingerSec uint64 `json:"StopPingerSec"`
+
+	//一つの対象へのpingを撃つインターバル(ミリ秒)
+	IntervalMillisec uint64 `json:"IntervalMillisec"`
+
+	//pingのタイムアウトまでの時間(ミリ秒)
+	TimeoutMillisec uint64 `json:"TimeoutMillisec"`
+
+	//pingの統計をとるため、過去いくつの結果を保持するか
+	StatisticsCountsNum uint64 `json:"StatisticsCountsNum"`
+
+	//pingの統計を集計するインターバル
+	StatisticsIntervalSec uint64 `json:"StatisticsIntervalSec"`
 }
 
 // DefaultConfig is return default value config
 func DefaultConfig() Config {
-	return Config{}
+	return Config{
+		StopPingerSec:         3600 * 4,
+		IntervalMillisec:      1000,
+		TimeoutMillisec:       1000,
+		StatisticsCountsNum:   10,
+		StatisticsIntervalSec: 1,
+	}
 }
 
 func configLoad(path string) (Config, error) {

@@ -21,6 +21,7 @@ type tClientWrap struct {
 	chStdinText <-chan string
 	chCancel    <-chan struct{}
 	chCLIStr    chan<- tCliMsg
+	config      Config
 }
 
 func (thisClient *tClientWrap) start(ctx context.Context) {
@@ -73,11 +74,11 @@ func (thisClient *tClientWrap) start(ctx context.Context) {
 	req := &pb.StartRequest{
 		Description:           descStr,
 		Targets:               targetList,
-		IntervalMillisec:      1000,
-		TimeoutMillisec:       1000,
-		StopPingerSec:         3600 * 4,
-		StatisticsCountsNum:   10,
-		StatisticsIntervalSec: 1,
+		StopPingerSec:         thisClient.config.StopPingerSec,
+		IntervalMillisec:      thisClient.config.IntervalMillisec,
+		TimeoutMillisec:       thisClient.config.TimeoutMillisec,
+		StatisticsCountsNum:   thisClient.config.StatisticsCountsNum,
+		StatisticsIntervalSec: thisClient.config.StatisticsIntervalSec,
 	}
 
 	res, err := thisClient.client.Start(ctx, req)

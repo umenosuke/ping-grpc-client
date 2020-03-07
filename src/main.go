@@ -203,6 +203,7 @@ func subMain() {
 			chStdinText: chStdinText,
 			chCancel:    chCancel,
 			chCLIStr:    chCLIStr,
+			config:      config,
 		}
 
 		go (func() {
