@@ -56,6 +56,7 @@ var (
 	argDebugFlag             = flag.Bool("debug", false, "print debug log")
 	argServerAddress         = flag.String("S", "127.0.0.1:5555", "server address:port")
 	argNoUseTLS              = flag.Bool("noUseTLS", false, "disable tls")
+	argCACertificatePath     = flag.String("caCert", "./ca.crt", "CA certificate file path")
 	argClientCertificatePath = flag.String("cCert", "./client_pinger.crt", "client certificate file path")
 	argClientPrivateKeyPath  = flag.String("cKey", "./client_pinger.pem", "client private key file path")
 	argConfigPath            = flag.String("configPath", "", "config file path")
@@ -399,7 +400,7 @@ func getGrpcDialOptions() ([]grpc.DialOption, error) {
 			return nil, err
 		}
 
-		caCert, err := ioutil.ReadFile("ca.crt")
+		caCert, err := ioutil.ReadFile(*argCACertificatePath)
 		if err != nil {
 			return nil, err
 		}
