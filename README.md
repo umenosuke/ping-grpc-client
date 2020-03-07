@@ -3,13 +3,6 @@
 ## これは何
 
 [これ](https://github.com/umenosuke/ping-grpc-server)のクライアント
-- pingを撃つデーモン
-- ping対象の指定などはgRPCクライアントから
-- 一回のリクエスト内の対象へはpingを並列で撃つ
-
-ping結果を見る箇所と撃ち箇所を別にできるので<br>
-PCからのpingが遮断されているときの疎通確認や<br>
-AS内部と外部からの疎通確認とかに
 
 ## Demo
 
