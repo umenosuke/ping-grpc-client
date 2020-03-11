@@ -103,6 +103,8 @@ func (thisClient *tClientWrap) start(ctx context.Context) {
 }
 
 func (thisClient *tClientWrap) stop(ctx context.Context) {
+	thisClient.printListSummary(ctx)
+
 	thisClient.chCLIStr <- tCliMsg{
 		text:    "PingerID? ",
 		color:   cliColorDefault,
@@ -130,16 +132,12 @@ func (thisClient *tClientWrap) stop(ctx context.Context) {
 }
 
 func (thisClient *tClientWrap) list(ctx context.Context) {
-	list, err := thisClient.client.GetPingerList(ctx, &pb.Null{})
-	if list != nil {
-		thisClient.printList(list)
-	}
-	if err != nil {
-		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
-	}
+	thisClient.printList(ctx)
 }
 
 func (thisClient *tClientWrap) info(ctx context.Context) {
+	thisClient.printListSummary(ctx)
+
 	thisClient.chCLIStr <- tCliMsg{
 		text:    "PingerID? ",
 		color:   cliColorDefault,
@@ -170,6 +168,8 @@ func (thisClient *tClientWrap) info(ctx context.Context) {
 }
 
 func (thisClient *tClientWrap) result(ctx context.Context) {
+	thisClient.printListSummary(ctx)
+
 	thisClient.chCLIStr <- tCliMsg{
 		text:    "PingerID? ",
 		color:   cliColorDefault,
@@ -300,6 +300,8 @@ func (thisClient *tClientWrap) result(ctx context.Context) {
 }
 
 func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
+	thisClient.printListSummary(ctx)
+
 	thisClient.chCLIStr <- tCliMsg{
 		text:    "PingerID? ",
 		color:   cliColorDefault,
@@ -445,21 +447,52 @@ func (thisClient *tClientWrap) printInfo(info *pb.PingerInfo) {
 	}
 }
 
-func (thisClient *tClientWrap) printList(list *pb.PingerList) {
-	str := ""
-
-	str += "================================================================\n"
-	for _, p := range list.GetPingers() {
-		str += "PingerID          : " + strconv.FormatUint(uint64(p.GetPingerID()), 10) + "\n"
-		str += "Description       : " + p.GetDescription() + "\n"
-		str += "StartUnixNanosec  : " + time.Unix(0, int64(p.GetStartUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
-		str += "ExpireUnixNanosec : " + time.Unix(0, int64(p.GetExpireUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
-		str += "================================================================\n"
+func (thisClient *tClientWrap) printList(ctx context.Context) {
+	list, err := thisClient.client.GetPingerList(ctx, &pb.Null{})
+	if err != nil {
+		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
 	}
 
-	thisClient.chCLIStr <- tCliMsg{
-		text:    str,
-		color:   cliColorDefault,
-		noBreak: true,
+	if list != nil {
+		str := ""
+
+		str += "================================================================\n"
+		for _, p := range list.GetPingers() {
+			str += "PingerID          : " + strconv.FormatUint(uint64(p.GetPingerID()), 10) + "\n"
+			str += "Description       : " + p.GetDescription() + "\n"
+			str += "StartUnixNanosec  : " + time.Unix(0, int64(p.GetStartUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
+			str += "ExpireUnixNanosec : " + time.Unix(0, int64(p.GetExpireUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
+			str += "================================================================\n"
+		}
+
+		thisClient.chCLIStr <- tCliMsg{
+			text:    str,
+			color:   cliColorDefault,
+			noBreak: true,
+		}
+	}
+}
+
+func (thisClient *tClientWrap) printListSummary(ctx context.Context) {
+	list, err := thisClient.client.GetPingerList(ctx, &pb.Null{})
+	if err != nil {
+		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
+	}
+
+	if list != nil {
+		str := ""
+
+		str += "================================================================\n"
+		str += "running Pingers\n"
+		for _, p := range list.GetPingers() {
+			str += strconv.FormatUint(uint64(p.GetPingerID()), 10) + " : " + p.GetDescription() + "\n"
+		}
+		str += "================================================================\n"
+
+		thisClient.chCLIStr <- tCliMsg{
+			text:    str,
+			color:   cliColorDefault,
+			noBreak: true,
+		}
 	}
 }
