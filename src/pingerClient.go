@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"sort"
 	"strconv"
 	"time"
 
@@ -454,10 +455,13 @@ func (thisClient *tClientWrap) printList(ctx context.Context) {
 	}
 
 	if list != nil {
+		pingers := list.GetPingers()
+		sort.Slice(pingers, func(i, j int) bool { return pingers[i].GetStartUnixNanosec() < pingers[j].GetStartUnixNanosec() })
+
 		str := ""
 
 		str += "================================================================\n"
-		for _, p := range list.GetPingers() {
+		for _, p := range pingers {
 			str += "PingerID          : " + strconv.FormatUint(uint64(p.GetPingerID()), 10) + "\n"
 			str += "Description       : " + p.GetDescription() + "\n"
 			str += "StartUnixNanosec  : " + time.Unix(0, int64(p.GetStartUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
@@ -480,11 +484,14 @@ func (thisClient *tClientWrap) printListSummary(ctx context.Context) {
 	}
 
 	if list != nil {
+		pingers := list.GetPingers()
+		sort.Slice(pingers, func(i, j int) bool { return pingers[i].GetStartUnixNanosec() < pingers[j].GetStartUnixNanosec() })
+
 		str := ""
 
 		str += "================================================================\n"
-		str += "running Pingers\n"
-		for _, p := range list.GetPingers() {
+		str += "running Pingers (start order)\n"
+		for _, p := range pingers {
 			str += strconv.FormatUint(uint64(p.GetPingerID()), 10) + " : " + p.GetDescription() + "\n"
 		}
 		str += "================================================================\n"
