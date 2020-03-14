@@ -14,15 +14,17 @@
 
 実行
 ```
+#TLSを利用しない場合
+./ping-grpc-client -S "(サーバーの)`IP`:`port`" -noUseTLS
+```
+
+```
 #TLSを利用する場合
 #  CA証明書 "./ca.crt"
 #  クライアント証明書 "./client_pinger.crt"
 #  クライアント秘密鍵 "./client_pinger.pem"
 #を用意してください
 ./ping-grpc-client -S "(サーバーの)`IP`:`port`"
-
-#TLSを利用しない場合
-./ping-grpc-client -S "(サーバーの)`IP`:`port`" -noUseTLS
 ```
 
 [コマンドの中身の説明](https://github.com/umenosuke/ping-grpc-client/blob/master/README_command.md)
@@ -49,6 +51,8 @@ Usage of ./ping-grpc-client:
         client private key file path (default "./client_pinger.pem")
   -caCert string
         CA certificate file path (default "./ca.crt")
+  -config string
+        config json string (default "{}")
   -configPath string
         config file path
   -debug
