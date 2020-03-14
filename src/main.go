@@ -59,6 +59,7 @@ var (
 	argCACertificatePath     = flag.String("caCert", "./ca.crt", "CA certificate file path")
 	argClientCertificatePath = flag.String("cCert", "./client_pinger.crt", "client certificate file path")
 	argClientPrivateKeyPath  = flag.String("cKey", "./client_pinger.pem", "client private key file path")
+	argConfig                = flag.String("config", "{}", "config json string")
 	argConfigPath            = flag.String("configPath", "", "config file path")
 	argNoColor               = flag.Bool("noColor", false, "disable colorful output")
 	argShowConfigFlg         = flag.Bool("printConfig", false, "show default config")
@@ -91,7 +92,7 @@ func subMain() {
 		return
 	}
 
-	config, err := configLoad(*argConfigPath)
+	config, err := configLoad(*argConfigPath, *argConfig)
 	if err != nil {
 		logger.Log(labelinglog.FlgFatal, err.Error())
 		exitCode = 1

@@ -34,19 +34,21 @@ func DefaultConfig() Config {
 	}
 }
 
-func configLoad(path string) (Config, error) {
+func configLoad(configPath string, configJSON string) (Config, error) {
 	res := DefaultConfig()
 
-	if path == "" {
-		return res, nil
+	if configPath != "" {
+		jsonString, err := ioutil.ReadFile(configPath)
+		if err != nil {
+			return res, err
+		}
+		err = json.Unmarshal(jsonString, &res)
+		if err != nil {
+			return res, err
+		}
 	}
 
-	jsonString, err := ioutil.ReadFile(path)
-	if err != nil {
-		return res, err
-	}
-
-	err = json.Unmarshal(jsonString, &res)
+	err := json.Unmarshal([]byte(configJSON), &res)
 	if err != nil {
 		return res, err
 	}
