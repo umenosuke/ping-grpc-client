@@ -491,6 +491,8 @@ func (thisClient *tClientWrap) printListSummary(ctx context.Context) {
 
 		str += "================================================================\n"
 		str += "running Pingers (start order)\n"
+		str += "----------------------------------------------------------------\n"
+		str += "PingerID : Description\n"
 		for _, p := range pingers {
 			str += strconv.FormatUint(uint64(p.GetPingerID()), 10) + " : " + p.GetDescription() + "\n"
 		}
