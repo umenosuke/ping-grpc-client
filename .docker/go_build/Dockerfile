@@ -1,7 +1,7 @@
 FROM centos:7
 
 RUN yum update -y
-RUN yum install -y wget unzip git
+RUN yum install -y wget zip unzip git
 
 ARG GO_VERSION='1.13.5'
 ARG GO_BINARY='go'"${GO_VERSION}"'.linux-amd64.tar.gz'
