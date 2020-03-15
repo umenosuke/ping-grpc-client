@@ -5,18 +5,9 @@
             "label": "go-build",
             "type": "shell",
             "command": "docker exec -it go_build_ping-grpc-client target_data/ping-grpc-client/.script/go_build.sh 'linux' 'amd64' 'build/ping-grpc-client'",
-            "args": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
-            },
-            "presentation": {
-                "echo": false,
-                "reveal": "silent",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
             },
             "problemMatcher": [
                 "$go"
@@ -27,14 +18,15 @@
             "type": "shell",
             "command": "docker exec -it go_build_ping-grpc-client target_data/ping-grpc-client/.script/go_build.sh 'windows' 'amd64' 'build/win-ping-grpc-client.exe'",
             "args": [],
-            "presentation": {
-                "echo": false,
-                "reveal": "silent",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": false
-            },
+            "problemMatcher": [
+                "$go"
+            ]
+        },
+        {
+            "label": "go-build-release",
+            "type": "shell",
+            "command": "docker exec -it go_build_ping-grpc-client target_data/ping-grpc-client/.script/go_build_release.sh",
+            "args": [],
             "problemMatcher": [
                 "$go"
             ]
