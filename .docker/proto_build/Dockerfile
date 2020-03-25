@@ -1,4 +1,4 @@
-FROM centos:7
+FROM centos:7 as base
 
 RUN yum update -y
 RUN yum install -y wget unzip git
@@ -31,3 +31,11 @@ RUN go install github.com/golang/protobuf/protoc-gen-go
 VOLUME /target_data
 
 ENV TZ=Asia/Tokyo
+
+
+FROM base as tstypes
+
+ARG PROTOC_GEN_TSTYPES_VERSION="0.4.0"
+RUN go get github.com/tmc/grpcutil/protoc-gen-tstypes
+RUN cd "$(go env GOPATH)"/src/github.com/tmc/grpcutil && git checkout "${PROTOC_GEN_TSTYPES_VERSION}"
+RUN go install github.com/tmc/grpcutil/protoc-gen-tstypes

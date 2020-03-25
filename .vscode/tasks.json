@@ -4,7 +4,10 @@
         {
             "label": "go-build",
             "type": "shell",
-            "command": "docker exec -it go_build_ping-grpc-client target_data/ping-grpc-client/.script/go_build.sh 'linux' 'amd64' 'build/ping-grpc-client'",
+            "command": "docker exec -it go_build_ping-grpc-client target_data/.script/go_build.sh 'linux' 'amd64' './src' 'build/ping-grpc-client'",
+            "dependsOn": [
+                "develop container start"
+            ],
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -16,8 +19,10 @@
         {
             "label": "go-build-windows",
             "type": "shell",
-            "command": "docker exec -it go_build_ping-grpc-client target_data/ping-grpc-client/.script/go_build.sh 'windows' 'amd64' 'build/win-ping-grpc-client.exe'",
-            "args": [],
+            "command": "docker exec -it go_build_ping-grpc-client target_data/.script/go_build.sh 'windows' 'amd64' './src' 'build/win-ping-grpc-client.exe'",
+            "dependsOn": [
+                "develop container start"
+            ],
             "problemMatcher": [
                 "$go"
             ]
@@ -25,8 +30,10 @@
         {
             "label": "go-build-release",
             "type": "shell",
-            "command": "docker exec -it go_build_ping-grpc-client target_data/ping-grpc-client/.script/go_build_release.sh",
-            "args": [],
+            "command": "docker exec -it go_build_ping-grpc-client target_data/.script/go_build_release.sh",
+            "dependsOn": [
+                "develop container start"
+            ],
             "problemMatcher": [
                 "$go"
             ]
@@ -40,7 +47,7 @@
         {
             "label": "develop container start",
             "type": "shell",
-            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml up",
+            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml up -d",
             "problemMatcher": []
         },
         {
@@ -59,6 +66,9 @@
             "label": "protobuf build in container",
             "type": "shell",
             "command": "docker exec -it proto_build_ping-grpc-client target_data/.script/proto_build.sh",
+            "dependsOn": [
+                "develop container start"
+            ],
             "problemMatcher": []
         }
     ]

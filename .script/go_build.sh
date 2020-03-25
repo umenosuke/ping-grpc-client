@@ -1,9 +1,16 @@
 #!/bin/bash
 
-cd $(dirname $0)/../
+cd "$(dirname $(readlink -f $0))/../"
+_BASE_DIR="$(pwd)"
+
+source ./.script/_conf.sh
 
 _OS=${1}
 _ARCH=${2}
-_OUTPUT_PATH=${3}
+_SRC_PATH=${3}
+_OUTPUT_PATH=${4}
 
-GOOS="${_OS}" GOARCH="${_ARCH}" go build -ldflags "-X main.metaVersion=$(git describe --tags --abbrev=0) -X main.metaRevision=$(git rev-parse --short HEAD)" -o "${_OUTPUT_PATH}" ./src
+GOOS="${_OS}" GOARCH="${_ARCH}" go build \
+ -ldflags "-X main.metaVersion=${_GIT_TAG} -X main.metaRevision=${_GIT_HASH}" \
+ -o "${_OUTPUT_PATH}" \
+ "${_SRC_PATH}"
