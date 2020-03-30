@@ -3,7 +3,7 @@ FROM centos:7
 RUN yum update -y
 RUN yum install -y wget zip unzip git
 
-ARG GO_VERSION='1.13.5'
+ARG GO_VERSION='1.14.1'
 ARG GO_BINARY='go'"${GO_VERSION}"'.linux-amd64.tar.gz'
 RUN wget https://dl.google.com/go/"${GO_BINARY}" -O /tmp/"${GO_BINARY}"
 RUN tar -C /usr/local -xzf /tmp/"${GO_BINARY}"
