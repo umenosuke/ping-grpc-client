@@ -17,6 +17,4 @@ ENV GOCACHE=/.cache/go-build
 RUN mkdir -p ${GOCACHE} && chmod 777 ${GOCACHE}
 ENV PATH=${PATH}:${GOROOT}/bin:${GOPATH}/bin
 
-VOLUME /target_data
-
 ENV TZ=Asia/Tokyo

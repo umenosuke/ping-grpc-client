@@ -28,8 +28,6 @@ RUN go get -d -u github.com/golang/protobuf/protoc-gen-go
 RUN cd "$(go env GOPATH)"/src/github.com/golang/protobuf && git checkout "${PROTOC_GEN_GO_VERSION}"
 RUN go install github.com/golang/protobuf/protoc-gen-go
 
-VOLUME /target_data
-
 ENV TZ=Asia/Tokyo
 
 
