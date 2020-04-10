@@ -1,21 +1,21 @@
 version: '3.4'
 services:
-  proto_build_ping-grpc-client:
+  proto_build:
     build: 
       context: proto_build
-      target: base
+      target: go
     tty: true
     user: "${_USER}"
     privileged: true
-    container_name: proto_build_ping-grpc-client
+    container_name: proto_go_build_${_PRJ_NAME}
     volumes:
-      - "../proto/:/target_data:ro"
-      - "../proto/go:/target_data/go:rw"
-  go_build_ping-grpc-client:
+      - "../:/target_data:ro"
+      - "../proto/:/target_data/proto:rw"
+  go_build:
     build: go_build
     tty: true
     user: "${_USER}"
     privileged: true
-    container_name: go_build_ping-grpc-client
+    container_name: go_build_${_PRJ_NAME}
     volumes:
       - "../:/target_data:rw"

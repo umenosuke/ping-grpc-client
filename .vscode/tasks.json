@@ -2,16 +2,36 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "develop container build",
+            "type": "shell",
+            "command": "source .script/_conf.sh; docker-compose -f .docker/docker-compose.yml build",
+            "problemMatcher": []
+        },
+        {
+            "label": "develop container start",
+            "type": "shell",
+            "command": "source .script/_conf.sh; docker-compose -f .docker/docker-compose.yml up -d",
+            "problemMatcher": []
+        },
+        {
+            "label": "develop container stop",
+            "type": "shell",
+            "command": "source .script/_conf.sh; docker-compose -f .docker/docker-compose.yml stop",
+            "problemMatcher": []
+        },
+        {
+            "label": "develop container remove",
+            "type": "shell",
+            "command": "source .script/_conf.sh; docker-compose -f .docker/docker-compose.yml down",
+            "problemMatcher": []
+        },
+        {
             "label": "go-build",
             "type": "shell",
-            "command": "docker exec -it go_build_ping-grpc-client target_data/.script/go_build.sh 'linux' 'amd64' './src' 'build/ping-grpc-client'",
+            "command": "source .script/_conf.sh; docker exec -it go_build_${_PRJ_NAME} target_data/.script/go_build.sh 'linux' 'amd64' './src' \"build/${_PRJ_NAME}\"",
             "dependsOn": [
                 "develop container start"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
             "problemMatcher": [
                 "$go"
             ]
@@ -19,7 +39,7 @@
         {
             "label": "go-build-windows",
             "type": "shell",
-            "command": "docker exec -it go_build_ping-grpc-client target_data/.script/go_build.sh 'windows' 'amd64' './src' 'build/win-ping-grpc-client.exe'",
+            "command": "source .script/_conf.sh; docker exec -it go_build_${_PRJ_NAME} target_data/.script/go_build.sh 'windows' 'amd64' './src' \"build/win-${_PRJ_NAME}.exe\"",
             "dependsOn": [
                 "develop container start"
             ],
@@ -30,7 +50,7 @@
         {
             "label": "go-build-release",
             "type": "shell",
-            "command": "docker exec -it go_build_ping-grpc-client target_data/.script/go_build_release.sh",
+            "command": "source .script/_conf.sh; docker exec -it go_build_${_PRJ_NAME} target_data/.script/go_build_release.sh",
             "dependsOn": [
                 "develop container start"
             ],
@@ -39,37 +59,26 @@
             ]
         },
         {
-            "label": "develop container build",
+            "label": "protobuf go build in container",
             "type": "shell",
-            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml build",
-            "problemMatcher": []
-        },
-        {
-            "label": "develop container start",
-            "type": "shell",
-            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml up -d",
-            "problemMatcher": []
-        },
-        {
-            "label": "develop container stop",
-            "type": "shell",
-            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml stop",
-            "problemMatcher": []
-        },
-        {
-            "label": "develop container remove",
-            "type": "shell",
-            "command": "_USER=\"$(id -u):$(id -g)\" docker-compose -f .docker/docker-compose.yml down",
-            "problemMatcher": []
-        },
-        {
-            "label": "protobuf build in container",
-            "type": "shell",
-            "command": "docker exec -it proto_build_ping-grpc-client target_data/.script/proto_build.sh",
+            "command": "source .script/_conf.sh; docker exec -it proto_go_build_${_PRJ_NAME} target_data/.script/proto_go_build.sh ./lib/proto/src ./proto",
             "dependsOn": [
                 "develop container start"
             ],
             "problemMatcher": []
+        },
+        {
+            "label": "build",
+            "dependsOrder": "sequence",
+            "dependsOn": [
+                "typescript build in container",
+                "sass build in container",
+                "go-build"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
         }
     ]
 }

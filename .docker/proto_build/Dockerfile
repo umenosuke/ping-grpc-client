@@ -23,12 +23,15 @@ RUN chmod -R +x /usr/local/protoc
 RUN echo 'export PATH=${PATH}:/usr/local/protoc/bin' >> /etc/profile.d/myProtoc.sh
 ENV PATH=${PATH}:/usr/local/protoc/bin
 
+ENV TZ=Asia/Tokyo
+
+
+FROM base as go
+
 ARG PROTOC_GEN_GO_VERSION="v1.3.4"
 RUN go get -d -u github.com/golang/protobuf/protoc-gen-go
 RUN cd "$(go env GOPATH)"/src/github.com/golang/protobuf && git checkout "${PROTOC_GEN_GO_VERSION}"
 RUN go install github.com/golang/protobuf/protoc-gen-go
-
-ENV TZ=Asia/Tokyo
 
 
 FROM base as tstypes
