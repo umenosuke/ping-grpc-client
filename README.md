@@ -95,24 +95,24 @@ git clone --recursive git@github.com:umenosuke/ping-grpc-client.git
 cd ping-grpc-client
 ```
 
-ビルド用のコンテナを立ち上げ
+設定読み込み
 ```
-_USER="$(id -u):$(id -g)" docker-compose -f .docker/docker-compose.yml up -d
+source .script/_conf.sh
 ```
 
-protoのコンパイル
+ビルド用のコンテナを立ち上げ
 ```
-docker exec -it proto_build_ping-grpc-client target_data/.script/proto_build.sh
+docker-compose -f .docker/docker-compose.yml up -d
 ```
 
 linux&amd64用バイナリを作成(ビルドターゲットは任意で変更してください)<br>
 ```
-docker exec -it go_build_ping-grpc-client target_data/ping-grpc-client/.script/go_build.sh 'linux' 'amd64' 'build/ping-grpc-client'
+docker exec -it go_build_${_PRJ_NAME} target_data/.script/go_build.sh 'linux' 'amd64' './src' "build/${_PRJ_NAME}"
 ```
 
 ビルド用のコンテナをお片付け
 ```
-_USER="$(id -u):$(id -g)" docker-compose -f .docker/docker-compose.yml down
+docker-compose -f .docker/docker-compose.yml down
 ```
 
 バイナリはこれ
