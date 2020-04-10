@@ -22,7 +22,7 @@ import (
 	"google.golang.org/grpc/keepalive"
 
 	"github.com/umenosuke/labelinglog"
-	pb "github.com/umenosuke/ping-grpc-client/proto/go/pingGrpc"
+	pb "github.com/umenosuke/ping-grpc-client/proto/pingGrpc"
 )
 
 type tCliColor int
