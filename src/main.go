@@ -247,62 +247,75 @@ func subMain() {
 					color:   cliColorDefault,
 					noBreak: false,
 				}
-
-				var path string
-				var descStr string
-
-				if _, err := os.Stat(path); err != nil {
-					logger.Log(labelinglog.FlgError, "target list file not found ["+path+"]")
-					chCLIStr <- tCliMsg{
-						text:    "not found [" + path + "]",
-						color:   cliColorDefault,
-						noBreak: false,
-					}
-					return
-				}
-
-				file, err := os.Open(path)
-				if err != nil {
-					logger.Log(labelinglog.FlgError, err.Error())
-					chCLIStr <- tCliMsg{
-						text:    "can not open [" + path + "]",
-						color:   cliColorDefault,
-						noBreak: false,
-					}
-					return
-				}
-				defer file.Close()
-
-				targetList := make([]*pb.StartRequest_IcmpTarget, 0)
-				reg := regexp.MustCompile(`^([^# \t]*)[# \t]*(.*)$`)
-				scanner := bufio.NewScanner(file)
-				lineNum := 0
-				for scanner.Scan() {
-					lineNum++
-					line := strings.Trim(scanner.Text(), " \t")
-					if line != "" {
-						result := reg.FindStringSubmatch(line)
-						if result != nil {
-							targetIP := result[1]
-							targetComment := result[2]
-
-							targetList = append(targetList, &pb.StartRequest_IcmpTarget{
-								TargetIP: targetIP,
-								Comment:  targetComment,
-							})
-						} else {
-							logger.Log(labelinglog.FlgInfo, fmt.Sprintf("[%s] line %3d skip, comment or format error \"%s\"", path, lineNum, line))
-						}
+				if len(subCommandArgs) >= 1 {
+					var path = subCommandArgs[0]
+					var descStr string
+					if len(subCommandArgs) >= 2 {
+						descStr = subCommandArgs[1]
 					} else {
-						logger.Log(labelinglog.FlgInfo, fmt.Sprintf("[%s] line %3d skip, empty \"%s\"", path, lineNum, line))
+						descStr = path
 					}
-				}
-				if err := scanner.Err(); err != nil {
-					logger.Log(labelinglog.FlgError, err.Error())
+
+					if _, err := os.Stat(path); err != nil {
+						logger.Log(labelinglog.FlgError, "target list file not found ["+path+"]")
+						chCLIStr <- tCliMsg{
+							text:    "not found [" + path + "]",
+							color:   cliColorDefault,
+							noBreak: false,
+						}
+						return
+					}
+
+					file, err := os.Open(path)
+					if err != nil {
+						logger.Log(labelinglog.FlgError, err.Error())
+						chCLIStr <- tCliMsg{
+							text:    "can not open [" + path + "]",
+							color:   cliColorDefault,
+							noBreak: false,
+						}
+						return
+					}
+					defer file.Close()
+
+					targetList := make([]*pb.StartRequest_IcmpTarget, 0)
+					reg := regexp.MustCompile(`^([^# \t]*)[# \t]*(.*)$`)
+					scanner := bufio.NewScanner(file)
+					lineNum := 0
+					for scanner.Scan() {
+						lineNum++
+						line := strings.Trim(scanner.Text(), " \t")
+						if line != "" {
+							result := reg.FindStringSubmatch(line)
+							if result != nil {
+								targetIP := result[1]
+								targetComment := result[2]
+
+								targetList = append(targetList, &pb.StartRequest_IcmpTarget{
+									TargetIP: targetIP,
+									Comment:  targetComment,
+								})
+							} else {
+								logger.Log(labelinglog.FlgInfo, fmt.Sprintf("[%s] line %3d skip, comment or format error \"%s\"", path, lineNum, line))
+							}
+						} else {
+							logger.Log(labelinglog.FlgInfo, fmt.Sprintf("[%s] line %3d skip, empty \"%s\"", path, lineNum, line))
+						}
+					}
+					if err := scanner.Err(); err != nil {
+						logger.Log(labelinglog.FlgError, err.Error())
+						return
+					}
+
+					client.start(childCtx, descStr, targetList)
+				} else {
+					client.chCLIStr <- tCliMsg{
+						text:    "Please enter \"target list path\"",
+						color:   cliColorDefault,
+						noBreak: false,
+					}
 					return
 				}
-
-				client.start(childCtx, descStr, targetList)
 			case "sto", "stop":
 				chCLIStr <- tCliMsg{
 					text:    "[stop]",
