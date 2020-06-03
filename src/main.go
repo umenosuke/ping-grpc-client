@@ -87,7 +87,7 @@ func main() {
 	if argDebugFlag {
 		logger.SetEnableLevel(labelinglog.FlgsetAll)
 	} else {
-		logger.SetEnableLevel(labelinglog.FlgsetCommon)
+		logger.SetEnableLevel(labelinglog.FlgsetCommon - labelinglog.FlgNotice)
 	}
 
 	subMain()
