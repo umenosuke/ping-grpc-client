@@ -39,6 +39,7 @@
 ```
 
 サブコマンドは下記の通りです
+通常の引数でエラー(file not found 等)があった場合、サブコマンドは実行されないです(help 含め)
 
 ```
 $ ./ping-grpc-client help
