@@ -77,7 +77,7 @@ help : (this) show help
 $ ./ping-grpc-client -help
 Usage of ./ping-grpc-client:
   -S string
-        server address:port (default "127.0.0.1:5555")
+        server address:port (shorthand) (default "127.0.0.1:5555")
   -cCert string
         client certificate file path (default "./client_pinger.crt")
   -cKey string
@@ -96,6 +96,11 @@ Usage of ./ping-grpc-client:
         disable tls
   -printConfig
         show default config
+  -s string
+        server address:port (shorthand) (default "127.0.0.1:5555")
+  -server string
+        server address:port (default "127.0.0.1:5555")
+  -v    show version (shorthand)
   -version
         show version
 ```
