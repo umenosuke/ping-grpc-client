@@ -28,53 +28,7 @@ type tClientWrap struct {
 	config      Config
 }
 
-func (thisClient *tClientWrap) start(ctx context.Context) {
-	thisClient.chCLIStr <- tCliMsg{
-		text:    "Description? ",
-		color:   cliColorDefault,
-		noBreak: true,
-	}
-	var descStr string
-	select {
-	case <-ctx.Done():
-		return
-	case <-thisClient.chCancel:
-		return
-	case descStr = <-thisClient.chStdinText:
-	}
-
-	targetList := make([]*pb.StartRequest_IcmpTarget, 0)
-	reg := regexp.MustCompile(`^([^# \t]*)[# \t]*(.*)$`)
-	for {
-		thisClient.chCLIStr <- tCliMsg{
-			text:    "target [IP Comment]? ",
-			color:   cliColorDefault,
-			noBreak: true,
-		}
-		var targetStr string
-		select {
-		case <-ctx.Done():
-			return
-		case <-thisClient.chCancel:
-			return
-		case targetStr = <-thisClient.chStdinText:
-		}
-		if targetStr == "" {
-			break
-		}
-
-		result := reg.FindStringSubmatch(targetStr)
-		if result != nil {
-			targetIP := result[1]
-			targetComment := result[2]
-
-			targetList = append(targetList, &pb.StartRequest_IcmpTarget{
-				TargetIP: targetIP,
-				Comment:  targetComment,
-			})
-		}
-	}
-
+func (thisClient *tClientWrap) start(ctx context.Context, descStr string, targetList []*pb.StartRequest_IcmpTarget) {
 	req := &pb.StartRequest{
 		Description:           descStr,
 		Targets:               targetList,
@@ -514,7 +468,54 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				color:   cliColorDefault,
 				noBreak: false,
 			}
-			thisClient.start(childCtx)
+
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "Description? ",
+				color:   cliColorDefault,
+				noBreak: true,
+			}
+			var descStr string
+			select {
+			case <-ctx.Done():
+				continue
+			case <-thisClient.chCancel:
+				continue
+			case descStr = <-thisClient.chStdinText:
+			}
+
+			targetList := make([]*pb.StartRequest_IcmpTarget, 0)
+			reg := regexp.MustCompile(`^([^# \t]*)[# \t]*(.*)$`)
+			for {
+				thisClient.chCLIStr <- tCliMsg{
+					text:    "target [IP Comment]? ",
+					color:   cliColorDefault,
+					noBreak: true,
+				}
+				var targetStr string
+				select {
+				case <-ctx.Done():
+					continue
+				case <-thisClient.chCancel:
+					continue
+				case targetStr = <-thisClient.chStdinText:
+				}
+				if targetStr == "" {
+					break
+				}
+
+				result := reg.FindStringSubmatch(targetStr)
+				if result != nil {
+					targetIP := result[1]
+					targetComment := result[2]
+
+					targetList = append(targetList, &pb.StartRequest_IcmpTarget{
+						TargetIP: targetIP,
+						Comment:  targetComment,
+					})
+				}
+			}
+
+			thisClient.start(childCtx, descStr, targetList)
 		case "sto", "stop":
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "[stop]",
