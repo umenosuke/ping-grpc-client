@@ -62,7 +62,12 @@ func (thisClient *tClientWrap) start(ctx context.Context, descStr string, target
 func (thisClient *tClientWrap) stop(ctx context.Context, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
-		logger.Log(labelinglog.FlgError, "error : \""+pingerID+"\"")
+		logger.Log(labelinglog.FlgError, "parse error : \""+pingerID+"\"")
+		thisClient.chCLIStr <- tCliMsg{
+			text:    "\"pingerID\" is please enter a number",
+			color:   cliColorDefault,
+			noBreak: false,
+		}
 		return
 	}
 
@@ -75,7 +80,12 @@ func (thisClient *tClientWrap) stop(ctx context.Context, pingerID string) {
 func (thisClient *tClientWrap) info(ctx context.Context, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
-		logger.Log(labelinglog.FlgError, "error : \""+pingerID+"\"")
+		logger.Log(labelinglog.FlgError, "parse error : \""+pingerID+"\"")
+		thisClient.chCLIStr <- tCliMsg{
+			text:    "\"pingerID\" is please enter a number",
+			color:   cliColorDefault,
+			noBreak: false,
+		}
 		return
 	}
 
@@ -91,7 +101,12 @@ func (thisClient *tClientWrap) info(ctx context.Context, pingerID string) {
 func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
-		logger.Log(labelinglog.FlgError, "error : \""+pingerID+"\"")
+		logger.Log(labelinglog.FlgError, "parse error : \""+pingerID+"\"")
+		thisClient.chCLIStr <- tCliMsg{
+			text:    "\"pingerID\" is please enter a number",
+			color:   cliColorDefault,
+			noBreak: false,
+		}
 		return
 	}
 
@@ -207,7 +222,12 @@ func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
 func (thisClient *tClientWrap) count(ctx context.Context, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
-		logger.Log(labelinglog.FlgError, "error : \""+pingerID+"\"")
+		logger.Log(labelinglog.FlgError, "parse error : \""+pingerID+"\"")
+		thisClient.chCLIStr <- tCliMsg{
+			text:    "\"pingerID\" is please enter a number",
+			color:   cliColorDefault,
+			noBreak: false,
+		}
 		return
 	}
 
