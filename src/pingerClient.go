@@ -1,12 +1,15 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -19,7 +22,7 @@ import (
 
 type tClientWrap struct {
 	client      pb.PingerClient
-	chStdinText <-chan string
+	chStdinText chan string
 	chCancel    <-chan struct{}
 	chCLIStr    chan<- tCliMsg
 	config      Config
@@ -502,6 +505,157 @@ func (thisClient *tClientWrap) printListSummary(ctx context.Context) {
 			text:    str,
 			color:   cliColorDefault,
 			noBreak: true,
+		}
+	}
+}
+
+func (thisClient *tClientWrap) interactive(ctx context.Context) {
+	childCtx, childCtxCancel := context.WithCancel(ctx)
+	defer childCtxCancel()
+
+	go (func() {
+		defer childCtxCancel()
+
+		scanner := bufio.NewScanner(os.Stdin)
+		logger.Log(labelinglog.FlgDebug, "start scanner")
+		defer logger.Log(labelinglog.FlgDebug, "finish scanner")
+		for {
+			select {
+			case <-childCtx.Done():
+				logger.Log(labelinglog.FlgDebug, "stop scanner")
+				return
+			default:
+			}
+
+			if scanner.Scan() {
+				text := scanner.Text()
+				thisClient.chStdinText <- strings.Trim(text, " \t")
+			} else {
+				if err := scanner.Err(); err != nil {
+					logger.Log(labelinglog.FlgError, "scanner: "+err.Error())
+					return
+				}
+
+				logger.Log(labelinglog.FlgDebug, "scanner: stdin closed, scanner reNew")
+				scanner = bufio.NewScanner(os.Stdin)
+			}
+		}
+	})()
+
+	logger.Log(labelinglog.FlgDebug, "start input")
+	defer logger.Log(labelinglog.FlgDebug, "finish input")
+	var command string
+	prompt := tCliMsg{
+		text:    "\n" + argServerAddress + "> ",
+		color:   cliColorDefault,
+		noBreak: true,
+	}
+	for {
+		thisClient.chCLIStr <- prompt
+
+		select {
+		case <-childCtx.Done():
+			logger.Log(labelinglog.FlgDebug, "stop input, childCtx.Done")
+			return
+		case <-thisClient.chCancel:
+			logger.Log(labelinglog.FlgDebug, "stop input, chCancel")
+			return
+		case command = <-thisClient.chStdinText:
+		}
+
+		switch command {
+		case "s", "st":
+			thisClient.chCLIStr <- tCliMsg{
+				text: "" +
+					"start : start pinger\n" +
+					"stop  : stop pinger",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+		case "sta", "star", "start":
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "[start]",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+			thisClient.start(childCtx)
+		case "sto", "stop":
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "[stop]",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+			thisClient.stop(childCtx)
+		case "l", "li", "lis", "list":
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "[list]",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+			thisClient.list(childCtx)
+		case "i", "in", "inf", "info":
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "[info]",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+			thisClient.info(childCtx)
+		case "r", "re", "res", "resu", "resul", "result":
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "[result]",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+			thisClient.result(childCtx)
+		case "c", "co", "cou", "coun", "count":
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "[count]",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+			thisClient.count(childCtx)
+		case "q", "qu", "qui", "quit":
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "[quit]",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+			return
+		case "e", "ex", "exi", "exit":
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "[exit]",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+			return
+		case "?", "h", "he", "hel", "help":
+			thisClient.chCLIStr <- tCliMsg{
+				text: "" +
+					"start  : start pinger\n" +
+					"stop   : stop pinger\n" +
+					"\n" +
+					"list   : show pinger list\n" +
+					"info   : show pinger info\n" +
+					"result : show ping result\n" +
+					"count  : show ping statistics\n" +
+					"\n" +
+					"quit   : exit client\n" +
+					"exit   : exit client\n" +
+					"\n" +
+					"help   : (this) show help",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
+		case "":
+			logger.Log(labelinglog.FlgDebug, "input empty")
+		default:
+			thisClient.chCLIStr <- tCliMsg{
+				text: "" +
+					"unknown command \"" + command + "\"\n" +
+					"? : show commands",
+				color:   cliColorDefault,
+				noBreak: false,
+			}
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -12,7 +11,6 @@ import (
 	"os/signal"
 	"runtime"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -224,151 +222,7 @@ func subMain() {
 			config:      config,
 		}
 
-		go (func() {
-			defer childCtxCancel()
-
-			scanner := bufio.NewScanner(os.Stdin)
-			logger.Log(labelinglog.FlgDebug, "start scanner")
-			defer logger.Log(labelinglog.FlgDebug, "finish scanner")
-			for {
-				select {
-				case <-childCtx.Done():
-					logger.Log(labelinglog.FlgDebug, "stop scanner")
-					return
-				default:
-				}
-
-				if scanner.Scan() {
-					text := scanner.Text()
-					chStdinText <- strings.Trim(text, " \t")
-				} else {
-					if err := scanner.Err(); err != nil {
-						logger.Log(labelinglog.FlgError, "scanner: "+err.Error())
-						return
-					}
-
-					logger.Log(labelinglog.FlgDebug, "scanner: stdin closed, scanner reNew")
-					scanner = bufio.NewScanner(os.Stdin)
-				}
-			}
-		})()
-
-		logger.Log(labelinglog.FlgDebug, "start input")
-		defer logger.Log(labelinglog.FlgDebug, "finish input")
-		var command string
-		prompt := tCliMsg{
-			text:    "\n" + argServerAddress + "> ",
-			color:   cliColorDefault,
-			noBreak: true,
-		}
-		for {
-			chCLIStr <- prompt
-
-			select {
-			case <-childCtx.Done():
-				logger.Log(labelinglog.FlgDebug, "stop input, childCtx.Done")
-				return
-			case <-chCancel:
-				logger.Log(labelinglog.FlgDebug, "stop input, chCancel")
-				return
-			case command = <-chStdinText:
-			}
-
-			switch command {
-			case "s", "st":
-				chCLIStr <- tCliMsg{
-					text: "" +
-						"start : start pinger\n" +
-						"stop  : stop pinger",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-			case "sta", "star", "start":
-				chCLIStr <- tCliMsg{
-					text:    "[start]",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-				client.start(childCtx)
-			case "sto", "stop":
-				chCLIStr <- tCliMsg{
-					text:    "[stop]",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-				client.stop(childCtx)
-			case "l", "li", "lis", "list":
-				chCLIStr <- tCliMsg{
-					text:    "[list]",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-				client.list(childCtx)
-			case "i", "in", "inf", "info":
-				chCLIStr <- tCliMsg{
-					text:    "[info]",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-				client.info(childCtx)
-			case "r", "re", "res", "resu", "resul", "result":
-				chCLIStr <- tCliMsg{
-					text:    "[result]",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-				client.result(childCtx)
-			case "c", "co", "cou", "coun", "count":
-				chCLIStr <- tCliMsg{
-					text:    "[count]",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-				client.count(childCtx)
-			case "q", "qu", "qui", "quit":
-				chCLIStr <- tCliMsg{
-					text:    "[quit]",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-				return
-			case "e", "ex", "exi", "exit":
-				chCLIStr <- tCliMsg{
-					text:    "[exit]",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-				return
-			case "?", "h", "he", "hel", "help":
-				chCLIStr <- tCliMsg{
-					text: "" +
-						"start  : start pinger\n" +
-						"stop   : stop pinger\n" +
-						"\n" +
-						"list   : show pinger list\n" +
-						"info   : show pinger info\n" +
-						"result : show ping result\n" +
-						"count  : show ping statistics\n" +
-						"\n" +
-						"quit   : exit client\n" +
-						"exit   : exit client\n" +
-						"\n" +
-						"help   : (this) show help",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-			case "":
-				logger.Log(labelinglog.FlgDebug, "input empty")
-			default:
-				chCLIStr <- tCliMsg{
-					text: "" +
-						"unknown command \"" + command + "\"\n" +
-						"? : show commands",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-			}
-		}
+		client.interactive(childCtx)
 	})()
 
 	{
