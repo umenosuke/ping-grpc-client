@@ -53,52 +53,64 @@ var (
 )
 
 var (
-	argDebugFlag             = flag.Bool("debug", false, "print debug log")
-	argServerAddress         = flag.String("S", "127.0.0.1:5555", "server address:port")
-	argNoUseTLS              = flag.Bool("noUseTLS", false, "disable tls")
-	argCACertificatePath     = flag.String("caCert", "./ca.crt", "CA certificate file path")
-	argClientCertificatePath = flag.String("cCert", "./client_pinger.crt", "client certificate file path")
-	argClientPrivateKeyPath  = flag.String("cKey", "./client_pinger.pem", "client private key file path")
-	argConfig                = flag.String("config", "{}", "config json string")
-	argConfigPath            = flag.String("configPath", "", "config file path")
-	argNoColor               = flag.Bool("noColor", false, "disable colorful output")
-	argShowConfigFlg         = flag.Bool("printConfig", false, "show default config")
-	argShowVersionFlag       = flag.Bool("version", false, "show version")
+	argDebugFlag             bool
+	argServerAddress         string
+	argNoUseTLS              bool
+	argCACertificatePath     string
+	argClientCertificatePath string
+	argClientPrivateKeyPath  string
+	argConfig                string
+	argConfigPath            string
+	argNoColor               bool
+	argShowConfigFlg         bool
+	argShowVersionFlag       bool
 )
 
 func init() {
+	flag.BoolVar(&argDebugFlag, "debug", false, "print debug log")
+	flag.StringVar(&argServerAddress, "S", "127.0.0.1:5555", "server address:port")
+	flag.BoolVar(&argNoUseTLS, "noUseTLS", false, "disable tls")
+	flag.StringVar(&argCACertificatePath, "caCert", "./ca.crt", "CA certificate file path")
+	flag.StringVar(&argClientCertificatePath, "cCert", "./client_pinger.crt", "client certificate file path")
+	flag.StringVar(&argClientPrivateKeyPath, "cKey", "./client_pinger.pem", "client private key file path")
+	flag.StringVar(&argConfig, "config", "{}", "config json string")
+	flag.StringVar(&argConfigPath, "configPath", "", "config file path")
+	flag.BoolVar(&argNoColor, "noColor", false, "disable colorful output")
+	flag.BoolVar(&argShowConfigFlg, "printConfig", false, "show default config")
+	flag.BoolVar(&argShowVersionFlag, "version", false, "show version")
+}
+
+func main() {
 	flag.Parse()
 
-	if *argDebugFlag {
+	if argDebugFlag {
 		logger.SetEnableLevel(labelinglog.FlgsetAll)
 	} else {
 		logger.SetEnableLevel(labelinglog.FlgsetCommon)
 	}
-}
 
-func main() {
 	subMain()
 	os.Exit(exitCode)
 }
 
 func subMain() {
-	if *argShowVersionFlag {
+	if argShowVersionFlag {
 		fmt.Fprint(os.Stdout, "Version "+metaVersion+"\n"+"Revision "+metaRevision+"\n")
 		return
 	}
 
-	if *argShowConfigFlg {
+	if argShowConfigFlg {
 		fmt.Fprint(os.Stdout, configStringify(DefaultConfig())+"\n")
 		return
 	}
 
-	config, err := configLoad(*argConfigPath, *argConfig)
+	config, err := configLoad(argConfigPath, argConfig)
 	if err != nil {
 		logger.Log(labelinglog.FlgFatal, err.Error())
 		exitCode = 1
 		return
 	}
-	if *argDebugFlag {
+	if argDebugFlag {
 		logger.Log(labelinglog.FlgDebug, "now config")
 		logger.LogMultiLines(labelinglog.FlgDebug, configStringify(config))
 	}
@@ -110,7 +122,7 @@ func subMain() {
 		return
 	}
 
-	conn, err := grpc.Dial(*argServerAddress, grpcDialOptions...)
+	conn, err := grpc.Dial(argServerAddress, grpcDialOptions...)
 	if err != nil {
 		logger.Log(labelinglog.FlgFatal, err.Error())
 		exitCode = 1
@@ -152,7 +164,7 @@ func subMain() {
 	go (func() {
 		defer wgFinish.Done()
 
-		enableColor := !*argNoColor && runtime.GOOS != "windows"
+		enableColor := !argNoColor && runtime.GOOS != "windows"
 		for {
 			select {
 			case <-time.After(time.Second):
@@ -242,7 +254,7 @@ func subMain() {
 		defer logger.Log(labelinglog.FlgDebug, "finish input")
 		var command string
 		prompt := tCliMsg{
-			text:    "\n" + *argServerAddress + "> ",
+			text:    "\n" + argServerAddress + "> ",
 			color:   cliColorDefault,
 			noBreak: true,
 		}
@@ -393,16 +405,16 @@ func getGrpcDialOptions() ([]grpc.DialOption, error) {
 		}))
 	}
 
-	if !*argNoUseTLS {
+	if !argNoUseTLS {
 		clientCert, err :=
 			tls.LoadX509KeyPair(
-				*argClientCertificatePath,
-				*argClientPrivateKeyPath)
+				argClientCertificatePath,
+				argClientPrivateKeyPath)
 		if err != nil {
 			return nil, err
 		}
 
-		caCert, err := ioutil.ReadFile(*argCACertificatePath)
+		caCert, err := ioutil.ReadFile(argCACertificatePath)
 		if err != nil {
 			return nil, err
 		}
