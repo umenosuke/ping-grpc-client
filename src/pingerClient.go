@@ -21,11 +21,10 @@ import (
 )
 
 type tClientWrap struct {
-	client      pb.PingerClient
-	chStdinText chan string
-	chCancel    <-chan struct{}
-	chCLIStr    chan<- tCliMsg
-	config      Config
+	client   pb.PingerClient
+	chCancel <-chan struct{}
+	chCLIStr chan<- tCliMsg
+	config   Config
 }
 
 func (thisClient *tClientWrap) start(ctx context.Context, descStr string, targetList []*pb.StartRequest_IcmpTarget) {
@@ -403,6 +402,8 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 	childCtx, childCtxCancel := context.WithCancel(ctx)
 	defer childCtxCancel()
 
+	chStdinText := make(chan string, 5)
+
 	go (func() {
 		defer childCtxCancel()
 
@@ -419,7 +420,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 
 			if scanner.Scan() {
 				text := scanner.Text()
-				thisClient.chStdinText <- strings.Trim(text, " \t")
+				chStdinText <- strings.Trim(text, " \t")
 			} else {
 				if err := scanner.Err(); err != nil {
 					logger.Log(labelinglog.FlgError, "scanner: "+err.Error())
@@ -450,7 +451,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 		case <-thisClient.chCancel:
 			logger.Log(labelinglog.FlgDebug, "stop input, chCancel")
 			return
-		case command = <-thisClient.chStdinText:
+		case command = <-chStdinText:
 		}
 
 		switch command {
@@ -480,7 +481,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				continue
 			case <-thisClient.chCancel:
 				continue
-			case descStr = <-thisClient.chStdinText:
+			case descStr = <-chStdinText:
 			}
 
 			targetList := make([]*pb.StartRequest_IcmpTarget, 0)
@@ -497,7 +498,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 					continue
 				case <-thisClient.chCancel:
 					continue
-				case targetStr = <-thisClient.chStdinText:
+				case targetStr = <-chStdinText:
 				}
 				if targetStr == "" {
 					break
@@ -535,7 +536,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				continue
 			case <-thisClient.chCancel:
 				continue
-			case pingerID = <-thisClient.chStdinText:
+			case pingerID = <-chStdinText:
 			}
 
 			thisClient.stop(childCtx, pingerID)
@@ -565,7 +566,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				continue
 			case <-thisClient.chCancel:
 				continue
-			case pingerID = <-thisClient.chStdinText:
+			case pingerID = <-chStdinText:
 			}
 
 			thisClient.info(childCtx, pingerID)
@@ -588,7 +589,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				continue
 			case <-thisClient.chCancel:
 				continue
-			case pingerID = <-thisClient.chStdinText:
+			case pingerID = <-chStdinText:
 			}
 
 			thisClient.result(childCtx, pingerID)
@@ -611,7 +612,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				continue
 			case <-thisClient.chCancel:
 				continue
-			case pingerID = <-thisClient.chStdinText:
+			case pingerID = <-chStdinText:
 			}
 
 			thisClient.count(childCtx, pingerID)

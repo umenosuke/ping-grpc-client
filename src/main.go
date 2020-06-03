@@ -212,14 +212,12 @@ func subMain() {
 	go (func() {
 		defer wgFinish.Done()
 		defer childCtxCancel()
-		chStdinText := make(chan string, 5)
 
 		client := tClientWrap{
-			client:      pb.NewPingerClient(conn),
-			chStdinText: chStdinText,
-			chCancel:    chCancel,
-			chCLIStr:    chCLIStr,
-			config:      config,
+			client:   pb.NewPingerClient(conn),
+			chCancel: chCancel,
+			chCLIStr: chCLIStr,
+			config:   config,
 		}
 
 		client.interactive(childCtx)
