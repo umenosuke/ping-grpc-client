@@ -220,7 +220,98 @@ func subMain() {
 			config:   config,
 		}
 
-		client.interactive(childCtx)
+		if len(flag.Args()) < 1 {
+			client.interactive(childCtx)
+		} else {
+			var subCommand = flag.Args()[0]
+			switch subCommand {
+			case "s", "st":
+				chCLIStr <- tCliMsg{
+					text: "" +
+						"unknown command \"" + subCommand + "\"\n" +
+						"\n" +
+						"start : start pinger\n" +
+						"stop  : stop pinger",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+			case "sta", "star", "start":
+				chCLIStr <- tCliMsg{
+					text:    "[start]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+				//client.start(childCtx, descStr, targetList)
+			case "sto", "stop":
+				chCLIStr <- tCliMsg{
+					text:    "[stop]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+				//client.stop(childCtx, pingerID)
+			case "l", "li", "lis", "list":
+				client.chCLIStr <- tCliMsg{
+					text:    "[list]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+				client.printListSummary(childCtx)
+			case "lo", "lon", "long", "longl", "longli", "longlis", "longlist":
+				client.chCLIStr <- tCliMsg{
+					text:    "[longlist]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+				client.printList(childCtx)
+			case "i", "in", "inf", "info":
+				chCLIStr <- tCliMsg{
+					text:    "[info]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+				//client.info(childCtx, pingerID)
+			case "r", "re", "res", "resu", "resul", "result":
+				chCLIStr <- tCliMsg{
+					text:    "[result]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+				//client.result(childCtx, pingerID)
+			case "c", "co", "cou", "coun", "count":
+				chCLIStr <- tCliMsg{
+					text:    "[count]",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+				//client.count(childCtx, pingerID)
+			case "h", "he", "hel", "help":
+				chCLIStr <- tCliMsg{
+					text: "[help]" +
+						"\n" +
+						"start    : start pinger\n" +
+						"stop     : stop pinger\n" +
+						"\n" +
+						"list     : show pinger short list\n" +
+						"longlist : show pinger list\n" +
+						"info     : show pinger info\n" +
+						"result   : show ping result\n" +
+						"count    : show ping statistics\n" +
+						"\n" +
+						"help     : (this) show help",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+			default:
+				chCLIStr <- tCliMsg{
+					text: "" +
+						"unknown command \"" + subCommand + "\"\n" +
+						"\n" +
+						"help : show commands",
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+			}
+		}
 	})()
 
 	{
