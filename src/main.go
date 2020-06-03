@@ -259,19 +259,38 @@ func subMain() {
 					}
 				}
 			case "l", "li", "lis", "list":
-				client.chCLIStr <- tCliMsg{
-					text:    "[list]",
-					color:   cliColorDefault,
-					noBreak: false,
+				if len(subCommandArgs) < 1 {
+					client.chCLIStr <- tCliMsg{
+						text:    "[list]",
+						color:   cliColorDefault,
+						noBreak: false,
+					}
+					client.printListSummary(childCtx)
+				} else {
+					switch subCommandArgs[0] {
+					case "l", "lo", "lon", "long":
+						client.chCLIStr <- tCliMsg{
+							text:    "[list long]",
+							color:   cliColorDefault,
+							noBreak: false,
+						}
+						client.printList(childCtx)
+					case "s", "sh", "sho", "shor", "short":
+						client.chCLIStr <- tCliMsg{
+							text:    "[list short]",
+							color:   cliColorDefault,
+							noBreak: false,
+						}
+						client.printListVeryShort(childCtx)
+					default:
+						client.chCLIStr <- tCliMsg{
+							text:    "[list]",
+							color:   cliColorDefault,
+							noBreak: false,
+						}
+						client.printListSummary(childCtx)
+					}
 				}
-				client.printListSummary(childCtx)
-			case "lo", "lon", "long", "longl", "longli", "longlis", "longlist":
-				client.chCLIStr <- tCliMsg{
-					text:    "[longlist]",
-					color:   cliColorDefault,
-					noBreak: false,
-				}
-				client.printList(childCtx)
 			case "i", "in", "inf", "info":
 				chCLIStr <- tCliMsg{
 					text:    "[info]",
@@ -324,8 +343,9 @@ func subMain() {
 						"start \"{target list path (&use description)}\" : start pinger\n" +
 						"stop \"{pingerID}\"                             : stop pinger\n" +
 						"\n" +
-						"list     : show pinger list summary\n" +
-						"longlist : show pinger list\n" +
+						"list       : show pinger list summary\n" +
+						"list long  : show pinger list verbose\n" +
+						"list short : show pinger id list\n" +
 						"\n" +
 						"info \"{pingerID}\"     : show pinger info\n" +
 						"result \"{pingerID}\"   : show ping result\n" +

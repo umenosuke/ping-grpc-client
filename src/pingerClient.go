@@ -414,6 +414,30 @@ func (thisClient *tClientWrap) printListSummary(ctx context.Context) {
 	}
 }
 
+func (thisClient *tClientWrap) printListVeryShort(ctx context.Context) {
+	list, err := thisClient.client.GetPingerList(ctx, &pb.Null{})
+	if err != nil {
+		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
+	}
+
+	if list != nil {
+		pingers := list.GetPingers()
+		sort.Slice(pingers, func(i, j int) bool { return pingers[i].GetStartUnixNanosec() < pingers[j].GetStartUnixNanosec() })
+
+		str := ""
+
+		for _, p := range pingers {
+			str += strconv.FormatUint(uint64(p.GetPingerID()), 10) + "\n"
+		}
+
+		thisClient.chCLIStr <- tCliMsg{
+			text:    str,
+			color:   cliColorDefault,
+			noBreak: true,
+		}
+	}
+}
+
 func (thisClient *tClientWrap) interactive(ctx context.Context) {
 	childCtx, childCtxCancel := context.WithCancel(ctx)
 	defer childCtxCancel()
