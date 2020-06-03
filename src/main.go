@@ -337,7 +337,7 @@ func subMain() {
 	if runtime.GOOS != "windows" {
 		fmt.Print("\x1b[49m\x1b[39m\x1b[0m")
 	}
-	fmt.Println("bye")
+	fmt.Println("\nbye")
 }
 
 func getGrpcDialOptions() ([]grpc.DialOption, error) {
