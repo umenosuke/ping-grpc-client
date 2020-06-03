@@ -425,11 +425,11 @@ func subMain() {
 						"list long  : show pinger list verbose\n" +
 						"list short : show pinger id list\n" +
 						"\n" +
-						"info \"{pingerID}\"     : show pinger info\n" +
-						"result \"{pingerID}\"   : show ping result\n" +
-						"count \"{pingerID}\"    : show ping statistics\n" +
+						"info \"{pingerID}\"   : show pinger info\n" +
+						"result \"{pingerID}\" : show ping result\n" +
+						"count \"{pingerID}\"  : show ping statistics\n" +
 						"\n" +
-						"help     : (this) show help",
+						"help : (this) show help",
 					color:   cliColorDefault,
 					noBreak: false,
 				}

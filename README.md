@@ -32,9 +32,13 @@
 
 #### サブコマンドで実行
 
-対話モードで実行と同様にしつつ
-実行コマンドの末尾に下記サブコマンドを追記することで
-非対話モードで動作します
+実行コマンドの末尾にサブコマンドを追記することで非対話モードで動作します
+
+```
+./ping-grpc-client [引数] {サブコマンド} [サブコマンドの引数]
+```
+
+サブコマンドは下記の通りです
 
 ```
 $ ./ping-grpc-client help
@@ -47,11 +51,11 @@ list       : show pinger list summary
 list long  : show pinger list verbose
 list short : show pinger id list
 
-info "{pingerID}"     : show pinger info
-result "{pingerID}"   : show ping result
-count "{pingerID}"    : show ping statistics
+info "{pingerID}"   : show pinger info
+result "{pingerID}" : show ping result
+count "{pingerID}"  : show ping statistics
 
-help     : (this) show help
+help : (this) show help
 ```
 
 基本的に各コマンドの出力などは対話モードと同様です
