@@ -28,6 +28,8 @@
 ./ping-grpc-client -S "(サーバーの)`IP`:`port`"
 ```
 
+[コマンドの中身の説明](https://github.com/umenosuke/ping-grpc-client/blob/master/README_command.md)
+
 #### サブコマンドで実行
 
 対話モードで実行と同様にしつつ
@@ -52,7 +54,7 @@ count "{pingerID}"    : show ping statistics
 help     : (this) show help
 ```
 
-[コマンドの中身の説明](https://github.com/umenosuke/ping-grpc-client/blob/master/README_command.md)
+基本的に各コマンドの出力などは対話モードと同様です
 
 ### TLS を利用する場合
 
