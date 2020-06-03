@@ -340,10 +340,11 @@ func subMain() {
 				}
 			case "h", "he", "hel", "help":
 				chCLIStr <- tCliMsg{
-					text: "[help]" +
-						"\n" +
-						"start \"{target list path (&use description)}\" : start pinger\n" +
-						"stop \"{pingerID}\"                             : stop pinger\n" +
+					text: "" +
+						"[help]\n" +
+						"start \"{target list path}\"                 : start pinger\n" +
+						"start \"{target list path}\" \"{description}\" : start pinger\n" +
+						"stop \"{pingerID}\"                          : stop pinger\n" +
 						"\n" +
 						"list       : show pinger list summary\n" +
 						"list long  : show pinger list verbose\n" +

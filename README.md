@@ -37,11 +37,13 @@
 ```
 $ ./ping-grpc-client help
 [help]
-start "{target list path (&use description)}" : start pinger
-stop "{pingerID}"                             : stop pinger
+start "{target list path}"                 : start pinger
+start "{target list path}" "{description}" : start pinger
+stop "{pingerID}"                          : stop pinger
 
-list     : show pinger list summary
-longlist : show pinger list
+list       : show pinger list summary
+list long  : show pinger list verbose
+list short : show pinger id list
 
 info "{pingerID}"     : show pinger info
 result "{pingerID}"   : show ping result
