@@ -433,8 +433,8 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 		}
 	})()
 
-	logger.Log(labelinglog.FlgDebug, "start input")
-	defer logger.Log(labelinglog.FlgDebug, "finish input")
+	logger.Log(labelinglog.FlgDebug, "start interactive")
+	defer logger.Log(labelinglog.FlgDebug, "finish interactive")
 	var command string
 	prompt := tCliMsg{
 		text:    "\n" + argServerAddress + "> ",
