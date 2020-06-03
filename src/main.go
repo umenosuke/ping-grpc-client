@@ -68,7 +68,9 @@ var (
 
 func init() {
 	flag.BoolVar(&argDebugFlag, "debug", false, "print debug log")
-	flag.StringVar(&argServerAddress, "S", "127.0.0.1:5555", "server address:port")
+	flag.StringVar(&argServerAddress, "server", "127.0.0.1:5555", "server address:port")
+	flag.StringVar(&argServerAddress, "s", "127.0.0.1:5555", "server address:port (shorthand)")
+	flag.StringVar(&argServerAddress, "S", "127.0.0.1:5555", "server address:port (shorthand)")
 	flag.BoolVar(&argNoUseTLS, "noUseTLS", false, "disable tls")
 	flag.StringVar(&argCACertificatePath, "caCert", "./ca.crt", "CA certificate file path")
 	flag.StringVar(&argClientCertificatePath, "cCert", "./client_pinger.crt", "client certificate file path")
@@ -78,6 +80,7 @@ func init() {
 	flag.BoolVar(&argNoColor, "noColor", false, "disable colorful output")
 	flag.BoolVar(&argShowConfigFlg, "printConfig", false, "show default config")
 	flag.BoolVar(&argShowVersionFlag, "version", false, "show version")
+	flag.BoolVar(&argShowVersionFlag, "v", false, "show version (shorthand)")
 }
 
 func main() {
