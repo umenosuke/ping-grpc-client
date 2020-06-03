@@ -106,23 +106,7 @@ func (thisClient *tClientWrap) start(ctx context.Context) {
 	}
 }
 
-func (thisClient *tClientWrap) stop(ctx context.Context) {
-	thisClient.printListSummary(ctx)
-
-	thisClient.chCLIStr <- tCliMsg{
-		text:    "PingerID? ",
-		color:   cliColorDefault,
-		noBreak: true,
-	}
-	var pingerID string
-	select {
-	case <-ctx.Done():
-		return
-	case <-thisClient.chCancel:
-		return
-	case pingerID = <-thisClient.chStdinText:
-	}
-
+func (thisClient *tClientWrap) stop(ctx context.Context, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "error : \""+pingerID+"\"")
@@ -139,23 +123,7 @@ func (thisClient *tClientWrap) list(ctx context.Context) {
 	thisClient.printList(ctx)
 }
 
-func (thisClient *tClientWrap) info(ctx context.Context) {
-	thisClient.printListSummary(ctx)
-
-	thisClient.chCLIStr <- tCliMsg{
-		text:    "PingerID? ",
-		color:   cliColorDefault,
-		noBreak: true,
-	}
-	var pingerID string
-	select {
-	case <-ctx.Done():
-		return
-	case <-thisClient.chCancel:
-		return
-	case pingerID = <-thisClient.chStdinText:
-	}
-
+func (thisClient *tClientWrap) info(ctx context.Context, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "error : \""+pingerID+"\"")
@@ -171,23 +139,7 @@ func (thisClient *tClientWrap) info(ctx context.Context) {
 	}
 }
 
-func (thisClient *tClientWrap) result(ctx context.Context) {
-	thisClient.printListSummary(ctx)
-
-	thisClient.chCLIStr <- tCliMsg{
-		text:    "PingerID? ",
-		color:   cliColorDefault,
-		noBreak: true,
-	}
-	var pingerID string
-	select {
-	case <-ctx.Done():
-		return
-	case <-thisClient.chCancel:
-		return
-	case pingerID = <-thisClient.chStdinText:
-	}
-
+func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "error : \""+pingerID+"\"")
@@ -303,23 +255,7 @@ func (thisClient *tClientWrap) result(ctx context.Context) {
 	}
 }
 
-func (thisClient *tClientWrap) count(ctx context.Context) {
-	thisClient.printListSummary(ctx)
-
-	thisClient.chCLIStr <- tCliMsg{
-		text:    "PingerID? ",
-		color:   cliColorDefault,
-		noBreak: true,
-	}
-	var pingerID string
-	select {
-	case <-ctx.Done():
-		return
-	case <-thisClient.chCancel:
-		return
-	case pingerID = <-thisClient.chStdinText:
-	}
-
+func (thisClient *tClientWrap) count(ctx context.Context, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "error : \""+pingerID+"\"")
@@ -585,7 +521,23 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				color:   cliColorDefault,
 				noBreak: false,
 			}
-			thisClient.stop(childCtx)
+
+			thisClient.printListSummary(ctx)
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "PingerID? ",
+				color:   cliColorDefault,
+				noBreak: true,
+			}
+			var pingerID string
+			select {
+			case <-ctx.Done():
+				continue
+			case <-thisClient.chCancel:
+				continue
+			case pingerID = <-thisClient.chStdinText:
+			}
+
+			thisClient.stop(childCtx, pingerID)
 		case "l", "li", "lis", "list":
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "[list]",
@@ -599,21 +551,69 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				color:   cliColorDefault,
 				noBreak: false,
 			}
-			thisClient.info(childCtx)
+
+			thisClient.printListSummary(ctx)
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "PingerID? ",
+				color:   cliColorDefault,
+				noBreak: true,
+			}
+			var pingerID string
+			select {
+			case <-ctx.Done():
+				continue
+			case <-thisClient.chCancel:
+				continue
+			case pingerID = <-thisClient.chStdinText:
+			}
+
+			thisClient.info(childCtx, pingerID)
 		case "r", "re", "res", "resu", "resul", "result":
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "[result]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
-			thisClient.result(childCtx)
+
+			thisClient.printListSummary(ctx)
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "PingerID? ",
+				color:   cliColorDefault,
+				noBreak: true,
+			}
+			var pingerID string
+			select {
+			case <-ctx.Done():
+				continue
+			case <-thisClient.chCancel:
+				continue
+			case pingerID = <-thisClient.chStdinText:
+			}
+
+			thisClient.result(childCtx, pingerID)
 		case "c", "co", "cou", "coun", "count":
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "[count]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
-			thisClient.count(childCtx)
+
+			thisClient.printListSummary(ctx)
+			thisClient.chCLIStr <- tCliMsg{
+				text:    "PingerID? ",
+				color:   cliColorDefault,
+				noBreak: true,
+			}
+			var pingerID string
+			select {
+			case <-ctx.Done():
+				continue
+			case <-thisClient.chCancel:
+				continue
+			case pingerID = <-thisClient.chStdinText:
+			}
+
+			thisClient.count(childCtx, pingerID)
 		case "q", "qu", "qui", "quit":
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "[quit]",
