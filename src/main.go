@@ -288,14 +288,15 @@ func subMain() {
 				chCLIStr <- tCliMsg{
 					text: "[help]" +
 						"\n" +
-						"start    : start pinger\n" +
-						"stop     : stop pinger\n" +
+						"start \"{target list path (&use description)}\" : start pinger\n" +
+						"stop \"{pingerID}\"                             : stop pinger\n" +
 						"\n" +
-						"list     : show pinger short list\n" +
+						"list     : show pinger list summary\n" +
 						"longlist : show pinger list\n" +
-						"info     : show pinger info\n" +
-						"result   : show ping result\n" +
-						"count    : show ping statistics\n" +
+						"\n" +
+						"info \"{pingerID}\"     : show pinger info\n" +
+						"result \"{pingerID}\"   : show ping result\n" +
+						"count \"{pingerID}\"    : show ping statistics\n" +
 						"\n" +
 						"help     : (this) show help",
 					color:   cliColorDefault,

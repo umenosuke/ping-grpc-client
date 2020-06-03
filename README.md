@@ -12,7 +12,8 @@
 
 ### 例
 
-実行
+#### 対話モードで実行
+
 ```
 #TLSを利用しない場合
 ./ping-grpc-client -S "(サーバーの)`IP`:`port`" -noUseTLS
@@ -27,13 +28,35 @@
 ./ping-grpc-client -S "(サーバーの)`IP`:`port`"
 ```
 
+#### サブコマンドで実行
+
+対話モードで実行と同様にしつつ
+実行コマンドの末尾に下記サブコマンドを追記することで
+非対話モードで動作します
+
+```
+$ ./ping-grpc-client help
+[help]
+start "{target list path (&use description)}" : start pinger
+stop "{pingerID}"                             : stop pinger
+
+list     : show pinger list summary
+longlist : show pinger list
+
+info "{pingerID}"     : show pinger info
+result "{pingerID}"   : show ping result
+count "{pingerID}"    : show ping statistics
+
+help     : (this) show help
+```
+
 [コマンドの中身の説明](https://github.com/umenosuke/ping-grpc-client/blob/master/README_command.md)
 
-### TLS利用する場合
+### TLS を利用する場合
 
 [ここ](https://github.com/umenosuke/x509helper)などを参考に
 
-- CAの証明書
+- CA の証明書
 - クライアント証明書と秘密鍵
 
 を作成してください
@@ -69,12 +92,14 @@ Usage of ./ping-grpc-client:
 
 ### コンフィグの内容について
 
-pingの開始リクエストで利用します
+ping の開始リクエストで利用します
 
 [ここ](https://github.com/umenosuke/ping-grpc-client/blob/master/src/config.go)の
+
 ```
 type Config struct
 ```
+
 がそのままエンコードされた形です<br>
 値の詳細についてはコメントを参照してください
 
@@ -85,32 +110,37 @@ type Config struct
 ### ビルドに必要なもの
 
 - git
-- Dockerとか
+- Docker とか
 
 ### コマンド
 
 クローン
+
 ```
 git clone --recursive git@github.com:umenosuke/ping-grpc-client.git
 cd ping-grpc-client
 ```
 
 設定読み込み
+
 ```
 source .script/_conf.sh
 ```
 
 ビルド用のコンテナを立ち上げ
+
 ```
 docker-compose -f .docker/docker-compose.yml up -d
 ```
 
-linux&amd64用バイナリを作成(ビルドターゲットは任意で変更してください)<br>
+linux&amd64 用バイナリを作成(ビルドターゲットは任意で変更してください)<br>
+
 ```
 docker exec -it go_build_${_PRJ_NAME} target_data/.script/go_build.sh 'linux' 'amd64' './src' "build/${_PRJ_NAME}"
 ```
 
 ビルド用のコンテナをお片付け
+
 ```
 docker-compose -f .docker/docker-compose.yml down
 ```
