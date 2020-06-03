@@ -445,11 +445,14 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 		thisClient.chCLIStr <- prompt
 
 		select {
+		case <-ctx.Done():
+			logger.Log(labelinglog.FlgDebug, "stop interactive, ctx.Done")
+			return
 		case <-childCtx.Done():
-			logger.Log(labelinglog.FlgDebug, "stop input, childCtx.Done")
+			logger.Log(labelinglog.FlgDebug, "stop interactive, childCtx.Done")
 			return
 		case <-thisClient.chCancel:
-			logger.Log(labelinglog.FlgDebug, "stop input, chCancel")
+			logger.Log(labelinglog.FlgDebug, "stop interactive, chCancel")
 			return
 		case command = <-chStdinText:
 		}
@@ -477,7 +480,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			}
 			var descStr string
 			select {
-			case <-ctx.Done():
+			case <-childCtx.Done():
 				continue
 			case <-thisClient.chCancel:
 				continue
@@ -494,7 +497,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				}
 				var targetStr string
 				select {
-				case <-ctx.Done():
+				case <-childCtx.Done():
 					continue
 				case <-thisClient.chCancel:
 					continue
@@ -524,7 +527,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				noBreak: false,
 			}
 
-			thisClient.printListSummary(ctx)
+			thisClient.printListSummary(childCtx)
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "PingerID? ",
 				color:   cliColorDefault,
@@ -532,7 +535,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			}
 			var pingerID string
 			select {
-			case <-ctx.Done():
+			case <-childCtx.Done():
 				continue
 			case <-thisClient.chCancel:
 				continue
@@ -554,7 +557,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				noBreak: false,
 			}
 
-			thisClient.printListSummary(ctx)
+			thisClient.printListSummary(childCtx)
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "PingerID? ",
 				color:   cliColorDefault,
@@ -562,7 +565,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			}
 			var pingerID string
 			select {
-			case <-ctx.Done():
+			case <-childCtx.Done():
 				continue
 			case <-thisClient.chCancel:
 				continue
@@ -577,7 +580,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				noBreak: false,
 			}
 
-			thisClient.printListSummary(ctx)
+			thisClient.printListSummary(childCtx)
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "PingerID? ",
 				color:   cliColorDefault,
@@ -585,7 +588,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			}
 			var pingerID string
 			select {
-			case <-ctx.Done():
+			case <-childCtx.Done():
 				continue
 			case <-thisClient.chCancel:
 				continue
@@ -600,7 +603,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				noBreak: false,
 			}
 
-			thisClient.printListSummary(ctx)
+			thisClient.printListSummary(childCtx)
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "PingerID? ",
 				color:   cliColorDefault,
@@ -608,7 +611,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			}
 			var pingerID string
 			select {
-			case <-ctx.Done():
+			case <-childCtx.Done():
 				continue
 			case <-thisClient.chCancel:
 				continue
