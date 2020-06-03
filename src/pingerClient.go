@@ -300,7 +300,7 @@ func (thisClient *tClientWrap) result(ctx context.Context) {
 	}
 }
 
-func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
+func (thisClient *tClientWrap) count(ctx context.Context) {
 	thisClient.printListSummary(ctx)
 
 	thisClient.chCLIStr <- tCliMsg{
@@ -394,7 +394,7 @@ func (thisClient *tClientWrap) count(ctx context.Context, rateThreshold int64) {
 
 				rate := c.GetCount() * 100 / resultListNum
 				var ox string
-				if rate < rateThreshold {
+				if rate < thisClient.config.CountRateThreshold {
 					ox = "X"
 					strColor = cliColorRed
 				} else {

@@ -324,7 +324,7 @@ func subMain() {
 					color:   cliColorDefault,
 					noBreak: false,
 				}
-				client.count(childCtx, 80)
+				client.count(childCtx)
 			case "q", "qu", "qui", "quit":
 				chCLIStr <- tCliMsg{
 					text:    "[quit]",

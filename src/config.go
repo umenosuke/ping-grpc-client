@@ -21,6 +21,9 @@ type Config struct {
 
 	//pingの統計を集計するインターバル
 	StatisticsIntervalSec uint64 `json:"StatisticsIntervalSec"`
+
+	//pingの統計表示で正常レスポンスが何％以上を成功とするか
+	CountRateThreshold int64 `json:"CountRateThreshold"`
 }
 
 // DefaultConfig is return default value config
@@ -31,6 +34,7 @@ func DefaultConfig() Config {
 		TimeoutMillisec:       1000,
 		StatisticsCountsNum:   10,
 		StatisticsIntervalSec: 1,
+		CountRateThreshold:    80,
 	}
 }
 
