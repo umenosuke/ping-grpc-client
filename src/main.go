@@ -224,6 +224,7 @@ func subMain() {
 			client.interactive(childCtx)
 		} else {
 			var subCommand = flag.Args()[0]
+			var subCommandArgs = flag.Args()[1:]
 			switch subCommand {
 			case "s", "st":
 				chCLIStr <- tCliMsg{
@@ -248,7 +249,15 @@ func subMain() {
 					color:   cliColorDefault,
 					noBreak: false,
 				}
-				//client.stop(childCtx, pingerID)
+				if len(subCommandArgs) >= 1 {
+					client.stop(childCtx, subCommandArgs[0])
+				} else {
+					client.chCLIStr <- tCliMsg{
+						text:    "Please enter \"pingerID\"",
+						color:   cliColorDefault,
+						noBreak: false,
+					}
+				}
 			case "l", "li", "lis", "list":
 				client.chCLIStr <- tCliMsg{
 					text:    "[list]",
@@ -269,21 +278,45 @@ func subMain() {
 					color:   cliColorDefault,
 					noBreak: false,
 				}
-				//client.info(childCtx, pingerID)
+				if len(subCommandArgs) >= 1 {
+					client.info(childCtx, subCommandArgs[0])
+				} else {
+					client.chCLIStr <- tCliMsg{
+						text:    "Please enter \"pingerID\"",
+						color:   cliColorDefault,
+						noBreak: false,
+					}
+				}
 			case "r", "re", "res", "resu", "resul", "result":
 				chCLIStr <- tCliMsg{
 					text:    "[result]",
 					color:   cliColorDefault,
 					noBreak: false,
 				}
-				//client.result(childCtx, pingerID)
+				if len(subCommandArgs) >= 1 {
+					client.result(childCtx, subCommandArgs[0])
+				} else {
+					client.chCLIStr <- tCliMsg{
+						text:    "Please enter \"pingerID\"",
+						color:   cliColorDefault,
+						noBreak: false,
+					}
+				}
 			case "c", "co", "cou", "coun", "count":
 				chCLIStr <- tCliMsg{
 					text:    "[count]",
 					color:   cliColorDefault,
 					noBreak: false,
 				}
-				//client.count(childCtx, pingerID)
+				if len(subCommandArgs) >= 1 {
+					client.count(childCtx, subCommandArgs[0])
+				} else {
+					client.chCLIStr <- tCliMsg{
+						text:    "Please enter \"pingerID\"",
+						color:   cliColorDefault,
+						noBreak: false,
+					}
+				}
 			case "h", "he", "hel", "help":
 				chCLIStr <- tCliMsg{
 					text: "[help]" +
