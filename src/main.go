@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -9,8 +10,10 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
+	"regexp"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -244,7 +247,62 @@ func subMain() {
 					color:   cliColorDefault,
 					noBreak: false,
 				}
-				//client.start(childCtx, descStr, targetList)
+
+				var path string
+				var descStr string
+
+				if _, err := os.Stat(path); err != nil {
+					logger.Log(labelinglog.FlgError, "target list file not found ["+path+"]")
+					chCLIStr <- tCliMsg{
+						text:    "not found [" + path + "]",
+						color:   cliColorDefault,
+						noBreak: false,
+					}
+					return
+				}
+
+				file, err := os.Open(path)
+				if err != nil {
+					logger.Log(labelinglog.FlgError, err.Error())
+					chCLIStr <- tCliMsg{
+						text:    "can not open [" + path + "]",
+						color:   cliColorDefault,
+						noBreak: false,
+					}
+					return
+				}
+				defer file.Close()
+
+				targetList := make([]*pb.StartRequest_IcmpTarget, 0)
+				reg := regexp.MustCompile(`^([^# \t]*)[# \t]*(.*)$`)
+				scanner := bufio.NewScanner(file)
+				lineNum := 0
+				for scanner.Scan() {
+					lineNum++
+					line := strings.Trim(scanner.Text(), " \t")
+					if line != "" {
+						result := reg.FindStringSubmatch(line)
+						if result != nil {
+							targetIP := result[1]
+							targetComment := result[2]
+
+							targetList = append(targetList, &pb.StartRequest_IcmpTarget{
+								TargetIP: targetIP,
+								Comment:  targetComment,
+							})
+						} else {
+							logger.Log(labelinglog.FlgInfo, fmt.Sprintf("[%s] line %3d skip, comment or format error \"%s\"", path, lineNum, line))
+						}
+					} else {
+						logger.Log(labelinglog.FlgInfo, fmt.Sprintf("[%s] line %3d skip, empty \"%s\"", path, lineNum, line))
+					}
+				}
+				if err := scanner.Err(); err != nil {
+					logger.Log(labelinglog.FlgError, err.Error())
+					return
+				}
+
+				client.start(childCtx, descStr, targetList)
 			case "sto", "stop":
 				chCLIStr <- tCliMsg{
 					text:    "[stop]",
@@ -259,6 +317,7 @@ func subMain() {
 						color:   cliColorDefault,
 						noBreak: false,
 					}
+					return
 				}
 			case "l", "li", "lis", "list":
 				if len(subCommandArgs) < 1 {
@@ -307,6 +366,7 @@ func subMain() {
 						color:   cliColorDefault,
 						noBreak: false,
 					}
+					return
 				}
 			case "r", "re", "res", "resu", "resul", "result":
 				chCLIStr <- tCliMsg{
@@ -322,6 +382,7 @@ func subMain() {
 						color:   cliColorDefault,
 						noBreak: false,
 					}
+					return
 				}
 			case "c", "co", "cou", "coun", "count":
 				chCLIStr <- tCliMsg{
@@ -337,6 +398,7 @@ func subMain() {
 						color:   cliColorDefault,
 						noBreak: false,
 					}
+					return
 				}
 			case "h", "he", "hel", "help":
 				chCLIStr <- tCliMsg{
@@ -367,6 +429,7 @@ func subMain() {
 					color:   cliColorDefault,
 					noBreak: false,
 				}
+				return
 			}
 		}
 	})()
