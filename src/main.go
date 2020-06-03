@@ -160,12 +160,11 @@ func subMain() {
 		}
 	})()
 
+	enableColor := !argNoColor && runtime.GOOS != "windows"
 	chCLIStr := make(chan tCliMsg, 200)
 	wgFinish.Add(1)
 	go (func() {
 		defer wgFinish.Done()
-
-		enableColor := !argNoColor && runtime.GOOS != "windows"
 		for {
 			select {
 			case <-time.After(time.Second):
@@ -391,7 +390,7 @@ func subMain() {
 		}
 	}
 
-	if runtime.GOOS != "windows" {
+	if enableColor {
 		fmt.Print("\x1b[49m\x1b[39m\x1b[0m")
 	}
 
