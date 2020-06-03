@@ -208,6 +208,8 @@ func subMain() {
 		}
 	})()
 
+	var isInteractive = len(flag.Args()) < 1
+
 	wgFinish.Add(1)
 	go (func() {
 		defer wgFinish.Done()
@@ -220,11 +222,12 @@ func subMain() {
 			config:   config,
 		}
 
-		if len(flag.Args()) < 1 {
+		if isInteractive {
 			client.interactive(childCtx)
 		} else {
 			var subCommand = flag.Args()[0]
 			var subCommandArgs = flag.Args()[1:]
+
 			switch subCommand {
 			case "s", "st":
 				chCLIStr <- tCliMsg{
@@ -391,7 +394,10 @@ func subMain() {
 	if runtime.GOOS != "windows" {
 		fmt.Print("\x1b[49m\x1b[39m\x1b[0m")
 	}
-	fmt.Println("\nbye")
+
+	if isInteractive {
+		fmt.Println("\nbye")
+	}
 }
 
 func getGrpcDialOptions() ([]grpc.DialOption, error) {
