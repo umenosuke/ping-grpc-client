@@ -72,10 +72,6 @@ func (thisClient *tClientWrap) stop(ctx context.Context, pingerID string) {
 	}
 }
 
-func (thisClient *tClientWrap) list(ctx context.Context) {
-	thisClient.printList(ctx)
-}
-
 func (thisClient *tClientWrap) info(ctx context.Context, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
@@ -549,7 +545,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				color:   cliColorDefault,
 				noBreak: false,
 			}
-			thisClient.list(childCtx)
+			thisClient.printList(childCtx)
 		case "i", "in", "inf", "info":
 			thisClient.chCLIStr <- tCliMsg{
 				text:    "[info]",
