@@ -49,7 +49,7 @@ func (thisClient *tClientWrap) start(ctx context.Context, chOutPut chan<- tCliMs
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
 	}
 
-	info, err := thisClient.client.GetPingerInfo(ctx, &pb.PingerID{PingerID: uint32(res.GetPingerID())})
+	info, err := thisClient.client.GetPingerInfo(ctx, &pb.PingerID{PingerID: res.GetPingerID()})
 	if info != nil {
 		thisClient.printInfo(chOutPut, info)
 	}

@@ -137,7 +137,7 @@ func subMain() {
 	ctx := context.Background()
 	childCtx, childCtxCancel := context.WithCancel(ctx)
 	defer childCtxCancel()
-	wgFinish := sync.WaitGroup{}
+	wgFinish := &sync.WaitGroup{}
 
 	chCancel := make(chan struct{}, 5)
 	wgFinish.Add(1)
