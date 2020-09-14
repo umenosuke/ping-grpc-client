@@ -22,10 +22,11 @@ import (
 )
 
 type tClientWrap struct {
-	client   pb.PingerClient
-	chCancel <-chan struct{}
-	wgFinish *sync.WaitGroup
-	config   Config
+	client        pb.PingerClient
+	chCancel      <-chan struct{}
+	wgFinish      *sync.WaitGroup
+	config        Config
+	isInteractive bool
 }
 
 func (thisClient *tClientWrap) start(ctx context.Context, chOutPut chan<- tCliMsg, descStr string, targetList []*pb.StartRequest_IcmpTarget) {
@@ -57,6 +58,92 @@ func (thisClient *tClientWrap) start(ctx context.Context, chOutPut chan<- tCliMs
 	}
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
+	}
+
+	if thisClient.config.CountLogOutputPath != "" {
+		thisClient.logOutput(ctx, chOutPut, res.GetPingerID())
+	}
+}
+
+func (thisClient *tClientWrap) logOutput(ctx context.Context, chOutPut chan<- tCliMsg, pingerID uint32) {
+	strPingerID := strconv.FormatUint(uint64(pingerID), 10)
+
+	childCtx, childCtxCancel := context.WithCancel(ctx)
+	go (func() {
+		defer childCtxCancel()
+		if thisClient.isInteractive {
+			select {
+			case <-ctx.Done():
+			case <-childCtx.Done():
+			}
+		} else {
+			select {
+			case <-ctx.Done():
+			case <-childCtx.Done():
+			case <-thisClient.chCancel:
+			}
+		}
+	})()
+
+	logPath := thisClient.config.CountLogOutputPath + "/" + time.Now().Format("20060102_150405") + "_id" + strPingerID + ".log"
+
+	chLogOutput := make(chan tCliMsg, 200)
+	thisClient.wgFinish.Add(1)
+	go (func() {
+		defer thisClient.wgFinish.Done()
+		defer childCtxCancel()
+		if thisClient.config.CountLogOutputPath != "" {
+			file, err := os.OpenFile(logPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+			if err != nil {
+				logger.Log(labelinglog.FlgError, "logfile "+err.Error())
+				return
+			}
+			defer file.Close()
+			defer logger.Log(labelinglog.FlgNotice, "id "+strPingerID+" logging stop : "+logPath)
+			defer (func() {
+				chOutPut <- tCliMsg{
+					text:    "id " + strPingerID + " logging stop : " + logPath,
+					color:   cliColorDefault,
+					noBreak: false,
+				}
+			})()
+
+			for {
+				select {
+				case <-time.After(time.Second):
+				case msg := <-chLogOutput:
+					str := ""
+
+					str += msg.text
+
+					if msg.noBreak {
+						fmt.Fprint(file, str)
+					} else {
+						fmt.Fprintln(file, str)
+					}
+					continue
+				}
+				select {
+				case <-childCtx.Done():
+					return
+				default:
+				}
+			}
+		}
+	})()
+
+	thisClient.wgFinish.Add(1)
+	go (func() {
+		defer thisClient.wgFinish.Done()
+		defer childCtxCancel()
+		thisClient.result(childCtx, chLogOutput, true, strPingerID)
+	})()
+
+	logger.Log(labelinglog.FlgNotice, "id "+strPingerID+" llogging start : "+logPath)
+	chOutPut <- tCliMsg{
+		text:    "id " + strPingerID + " llogging start : " + logPath,
+		color:   cliColorDefault,
+		noBreak: false,
 	}
 }
 
@@ -99,7 +186,7 @@ func (thisClient *tClientWrap) info(ctx context.Context, chOutPut chan<- tCliMsg
 	}
 }
 
-func (thisClient *tClientWrap) result(ctx context.Context, chOutPut chan<- tCliMsg, pingerID string) {
+func (thisClient *tClientWrap) result(ctx context.Context, chOutPut chan<- tCliMsg, execBackground bool, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "parse error : \""+pingerID+"\"")
@@ -113,6 +200,9 @@ func (thisClient *tClientWrap) result(ctx context.Context, chOutPut chan<- tCliM
 
 	info, err := thisClient.client.GetPingerInfo(ctx, &pb.PingerID{PingerID: uint32(id)})
 	if err != nil {
+		if status.Code(err) == codes.Canceled {
+			return
+		}
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
 		return
 	}
@@ -141,10 +231,17 @@ func (thisClient *tClientWrap) result(ctx context.Context, chOutPut chan<- tCliM
 	defer childCtxCancel()
 	go (func() {
 		defer childCtxCancel()
-		select {
-		case <-ctx.Done():
-		case <-childCtx.Done():
-		case <-thisClient.chCancel:
+		if execBackground {
+			select {
+			case <-ctx.Done():
+			case <-childCtx.Done():
+			}
+		} else {
+			select {
+			case <-ctx.Done():
+			case <-childCtx.Done():
+			case <-thisClient.chCancel:
+			}
 		}
 	})()
 
@@ -636,7 +733,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context, chOutPut chan<- 
 			case pingerID = <-chStdinText:
 			}
 
-			thisClient.result(childCtx, chOutPut, pingerID)
+			thisClient.result(childCtx, chOutPut, false, pingerID)
 		case "c", "co", "cou", "coun", "count":
 			chOutPut <- tCliMsg{
 				text:    "[count]",

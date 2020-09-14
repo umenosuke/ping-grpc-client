@@ -24,6 +24,9 @@ type Config struct {
 
 	//pingの統計表示で正常レスポンスが何％以上を成功とするか
 	CountRateThreshold int64 `json:"CountRateThreshold"`
+
+	//pingのstart時に統計表示のログを保存するパス、空白文字列でログを保存しない
+	CountLogOutputPath string `json:"CountLogOutputPath"`
 }
 
 // DefaultConfig is return default value config
@@ -35,6 +38,7 @@ func DefaultConfig() Config {
 		StatisticsCountsNum:   10,
 		StatisticsIntervalSec: 1,
 		CountRateThreshold:    80,
+		CountLogOutputPath:    "",
 	}
 }
 

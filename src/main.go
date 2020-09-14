@@ -218,10 +218,11 @@ func subMain() {
 		defer childCtxCancel()
 
 		client := tClientWrap{
-			client:   pb.NewPingerClient(conn),
-			chCancel: chCancel,
-			wgFinish: &sync.WaitGroup{},
-			config:   config,
+			client:        pb.NewPingerClient(conn),
+			chCancel:      chCancel,
+			wgFinish:      &sync.WaitGroup{},
+			config:        config,
+			isInteractive: isInteractive,
 		}
 
 		if isInteractive {
@@ -308,6 +309,7 @@ func subMain() {
 					}
 
 					client.start(childCtx, chCLIStr, descStr, targetList)
+					client.wgFinish.Wait()
 				} else {
 					chCLIStr <- tCliMsg{
 						text:    "Please enter \"target list path\"",
@@ -388,7 +390,7 @@ func subMain() {
 					noBreak: false,
 				}
 				if len(subCommandArgs) >= 1 {
-					client.result(childCtx, chCLIStr, subCommandArgs[0])
+					client.result(childCtx, chCLIStr, false, subCommandArgs[0])
 				} else {
 					chCLIStr <- tCliMsg{
 						text:    "Please enter \"pingerID\"",
