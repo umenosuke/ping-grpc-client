@@ -23,11 +23,10 @@ import (
 type tClientWrap struct {
 	client   pb.PingerClient
 	chCancel <-chan struct{}
-	chCLIStr chan<- tCliMsg
 	config   Config
 }
 
-func (thisClient *tClientWrap) start(ctx context.Context, descStr string, targetList []*pb.StartRequest_IcmpTarget) {
+func (thisClient *tClientWrap) start(ctx context.Context, chOutPut chan<- tCliMsg, descStr string, targetList []*pb.StartRequest_IcmpTarget) {
 	req := &pb.StartRequest{
 		Description:           descStr,
 		Targets:               targetList,
@@ -40,7 +39,7 @@ func (thisClient *tClientWrap) start(ctx context.Context, descStr string, target
 
 	res, err := thisClient.client.Start(ctx, req)
 	if res != nil {
-		thisClient.chCLIStr <- tCliMsg{
+		chOutPut <- tCliMsg{
 			text:    "start ID: " + strconv.FormatUint(uint64(res.GetPingerID()), 10),
 			color:   cliColorDefault,
 			noBreak: false,
@@ -52,18 +51,18 @@ func (thisClient *tClientWrap) start(ctx context.Context, descStr string, target
 
 	info, err := thisClient.client.GetPingerInfo(ctx, &pb.PingerID{PingerID: uint32(res.GetPingerID())})
 	if info != nil {
-		thisClient.printInfo(info)
+		thisClient.printInfo(chOutPut, info)
 	}
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
 	}
 }
 
-func (thisClient *tClientWrap) stop(ctx context.Context, pingerID string) {
+func (thisClient *tClientWrap) stop(ctx context.Context, chOutPut chan<- tCliMsg, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "parse error : \""+pingerID+"\"")
-		thisClient.chCLIStr <- tCliMsg{
+		chOutPut <- tCliMsg{
 			text:    "\"pingerID\" is please enter a number",
 			color:   cliColorDefault,
 			noBreak: false,
@@ -77,11 +76,11 @@ func (thisClient *tClientWrap) stop(ctx context.Context, pingerID string) {
 	}
 }
 
-func (thisClient *tClientWrap) info(ctx context.Context, pingerID string) {
+func (thisClient *tClientWrap) info(ctx context.Context, chOutPut chan<- tCliMsg, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "parse error : \""+pingerID+"\"")
-		thisClient.chCLIStr <- tCliMsg{
+		chOutPut <- tCliMsg{
 			text:    "\"pingerID\" is please enter a number",
 			color:   cliColorDefault,
 			noBreak: false,
@@ -91,18 +90,18 @@ func (thisClient *tClientWrap) info(ctx context.Context, pingerID string) {
 
 	info, err := thisClient.client.GetPingerInfo(ctx, &pb.PingerID{PingerID: uint32(id)})
 	if info != nil {
-		thisClient.printInfo(info)
+		thisClient.printInfo(chOutPut, info)
 	}
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
 	}
 }
 
-func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
+func (thisClient *tClientWrap) result(ctx context.Context, chOutPut chan<- tCliMsg, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "parse error : \""+pingerID+"\"")
-		thisClient.chCLIStr <- tCliMsg{
+		chOutPut <- tCliMsg{
 			text:    "\"pingerID\" is please enter a number",
 			color:   cliColorDefault,
 			noBreak: false,
@@ -115,7 +114,7 @@ func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
 		return
 	}
-	thisClient.printInfo(info)
+	thisClient.printInfo(chOutPut, info)
 
 	targets := make(map[uint32]struct {
 		IPAddress string
@@ -168,7 +167,7 @@ func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
 		if result != nil {
 			switch result.GetType() {
 			case pb.IcmpResult_IcmpResultTypeReceive:
-				thisClient.chCLIStr <- tCliMsg{
+				chOutPut <- tCliMsg{
 					text: fmt.Sprintf("R O - %s - %15s - %05d - %7.2fms - %s",
 						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 						targets[result.GetTargetID()].IPAddress,
@@ -180,7 +179,7 @@ func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
 					noBreak: false,
 				}
 			case pb.IcmpResult_IcmpResultTypeReceiveAfterTimeout:
-				thisClient.chCLIStr <- tCliMsg{
+				chOutPut <- tCliMsg{
 					text: fmt.Sprintf("R ? - %s - %15s - %05d - %7.2fms after Timeout - %s",
 						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 						targets[result.GetTargetID()].IPAddress,
@@ -192,7 +191,7 @@ func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
 					noBreak: false,
 				}
 			case pb.IcmpResult_IcmpResultTypeTTLExceeded:
-				thisClient.chCLIStr <- tCliMsg{
+				chOutPut <- tCliMsg{
 					text: fmt.Sprintf("R X - %s - %15s - %05d - TTL Exceeded from %s - %s",
 						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 						targets[result.GetTargetID()].IPAddress,
@@ -204,7 +203,7 @@ func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
 					noBreak: false,
 				}
 			case pb.IcmpResult_IcmpResultTypeTimeout:
-				thisClient.chCLIStr <- tCliMsg{
+				chOutPut <- tCliMsg{
 					text: fmt.Sprintf("R X - %s - %15s - %05d - Timeout!! - %s",
 						time.Unix(0, result.GetReceiveTimeUnixNanosec()).Format("2006/01/02 15:04:05.000"),
 						targets[result.GetTargetID()].IPAddress,
@@ -219,11 +218,11 @@ func (thisClient *tClientWrap) result(ctx context.Context, pingerID string) {
 	}
 }
 
-func (thisClient *tClientWrap) count(ctx context.Context, pingerID string) {
+func (thisClient *tClientWrap) count(ctx context.Context, chOutPut chan<- tCliMsg, pingerID string) {
 	id, err := strconv.Atoi(pingerID)
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "parse error : \""+pingerID+"\"")
-		thisClient.chCLIStr <- tCliMsg{
+		chOutPut <- tCliMsg{
 			text:    "\"pingerID\" is please enter a number",
 			color:   cliColorDefault,
 			noBreak: false,
@@ -236,7 +235,7 @@ func (thisClient *tClientWrap) count(ctx context.Context, pingerID string) {
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
 		return
 	}
-	thisClient.printInfo(info)
+	thisClient.printInfo(chOutPut, info)
 
 	targets := make(map[uint32]struct {
 		IPAddress string
@@ -288,7 +287,7 @@ func (thisClient *tClientWrap) count(ctx context.Context, pingerID string) {
 		}
 
 		if res != nil {
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "",
 				color:   cliColorDefault,
 				noBreak: false,
@@ -319,7 +318,7 @@ func (thisClient *tClientWrap) count(ctx context.Context, pingerID string) {
 					targets[targetID].Comment,
 				)
 
-				thisClient.chCLIStr <- tCliMsg{
+				chOutPut <- tCliMsg{
 					text:    str,
 					color:   strColor,
 					noBreak: false,
@@ -329,7 +328,7 @@ func (thisClient *tClientWrap) count(ctx context.Context, pingerID string) {
 	}
 }
 
-func (thisClient *tClientWrap) printInfo(info *pb.PingerInfo) {
+func (thisClient *tClientWrap) printInfo(chOutPut chan<- tCliMsg, info *pb.PingerInfo) {
 	str := ""
 
 	str += "================================================================\n"
@@ -349,14 +348,14 @@ func (thisClient *tClientWrap) printInfo(info *pb.PingerInfo) {
 	str += "ExpireUnixNanosec     : " + time.Unix(0, int64(info.GetExpireUnixNanosec())).Format("2006/01/02 15:04:05.000") + "\n"
 	str += "================================================================"
 
-	thisClient.chCLIStr <- tCliMsg{
+	chOutPut <- tCliMsg{
 		text:    str,
 		color:   cliColorDefault,
 		noBreak: false,
 	}
 }
 
-func (thisClient *tClientWrap) printList(ctx context.Context) {
+func (thisClient *tClientWrap) printList(ctx context.Context, chOutPut chan<- tCliMsg) {
 	list, err := thisClient.client.GetPingerList(ctx, &pb.Null{})
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
@@ -377,7 +376,7 @@ func (thisClient *tClientWrap) printList(ctx context.Context) {
 			str += "================================================================\n"
 		}
 
-		thisClient.chCLIStr <- tCliMsg{
+		chOutPut <- tCliMsg{
 			text:    str,
 			color:   cliColorDefault,
 			noBreak: true,
@@ -385,7 +384,7 @@ func (thisClient *tClientWrap) printList(ctx context.Context) {
 	}
 }
 
-func (thisClient *tClientWrap) printListSummary(ctx context.Context) {
+func (thisClient *tClientWrap) printListSummary(ctx context.Context, chOutPut chan<- tCliMsg) {
 	list, err := thisClient.client.GetPingerList(ctx, &pb.Null{})
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
@@ -406,7 +405,7 @@ func (thisClient *tClientWrap) printListSummary(ctx context.Context) {
 		}
 		str += "================================================================\n"
 
-		thisClient.chCLIStr <- tCliMsg{
+		chOutPut <- tCliMsg{
 			text:    str,
 			color:   cliColorDefault,
 			noBreak: true,
@@ -414,7 +413,7 @@ func (thisClient *tClientWrap) printListSummary(ctx context.Context) {
 	}
 }
 
-func (thisClient *tClientWrap) printListVeryShort(ctx context.Context) {
+func (thisClient *tClientWrap) printListVeryShort(ctx context.Context, chOutPut chan<- tCliMsg) {
 	list, err := thisClient.client.GetPingerList(ctx, &pb.Null{})
 	if err != nil {
 		logger.Log(labelinglog.FlgError, "\""+err.Error()+"\"")
@@ -430,7 +429,7 @@ func (thisClient *tClientWrap) printListVeryShort(ctx context.Context) {
 			str += strconv.FormatUint(uint64(p.GetPingerID()), 10) + "\n"
 		}
 
-		thisClient.chCLIStr <- tCliMsg{
+		chOutPut <- tCliMsg{
 			text:    str,
 			color:   cliColorDefault,
 			noBreak: true,
@@ -438,7 +437,7 @@ func (thisClient *tClientWrap) printListVeryShort(ctx context.Context) {
 	}
 }
 
-func (thisClient *tClientWrap) interactive(ctx context.Context) {
+func (thisClient *tClientWrap) interactive(ctx context.Context, chOutPut chan<- tCliMsg) {
 	childCtx, childCtxCancel := context.WithCancel(ctx)
 	defer childCtxCancel()
 
@@ -482,7 +481,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 		noBreak: true,
 	}
 	for {
-		thisClient.chCLIStr <- prompt
+		chOutPut <- prompt
 
 		select {
 		case <-ctx.Done():
@@ -499,7 +498,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 
 		switch command {
 		case "s", "st":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text: "" +
 					"start : start pinger\n" +
 					"stop  : stop pinger",
@@ -507,13 +506,13 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				noBreak: false,
 			}
 		case "sta", "star", "start":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "[start]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
 
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "Description? ",
 				color:   cliColorDefault,
 				noBreak: true,
@@ -530,7 +529,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			targetList := make([]*pb.StartRequest_IcmpTarget, 0)
 			reg := regexp.MustCompile(`^([^# \t]*)[# \t]*(.*)$`)
 			for {
-				thisClient.chCLIStr <- tCliMsg{
+				chOutPut <- tCliMsg{
 					text:    "target [IP Comment]? ",
 					color:   cliColorDefault,
 					noBreak: true,
@@ -559,16 +558,16 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 				}
 			}
 
-			thisClient.start(childCtx, descStr, targetList)
+			thisClient.start(childCtx, chOutPut, descStr, targetList)
 		case "sto", "stop":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "[stop]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
 
-			thisClient.printListSummary(childCtx)
-			thisClient.chCLIStr <- tCliMsg{
+			thisClient.printListSummary(childCtx, chOutPut)
+			chOutPut <- tCliMsg{
 				text:    "PingerID? ",
 				color:   cliColorDefault,
 				noBreak: true,
@@ -582,23 +581,23 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			case pingerID = <-chStdinText:
 			}
 
-			thisClient.stop(childCtx, pingerID)
+			thisClient.stop(childCtx, chOutPut, pingerID)
 		case "l", "li", "lis", "list":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "[list]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
-			thisClient.printList(childCtx)
+			thisClient.printList(childCtx, chOutPut)
 		case "i", "in", "inf", "info":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "[info]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
 
-			thisClient.printListSummary(childCtx)
-			thisClient.chCLIStr <- tCliMsg{
+			thisClient.printListSummary(childCtx, chOutPut)
+			chOutPut <- tCliMsg{
 				text:    "PingerID? ",
 				color:   cliColorDefault,
 				noBreak: true,
@@ -612,16 +611,16 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			case pingerID = <-chStdinText:
 			}
 
-			thisClient.info(childCtx, pingerID)
+			thisClient.info(childCtx, chOutPut, pingerID)
 		case "r", "re", "res", "resu", "resul", "result":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "[result]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
 
-			thisClient.printListSummary(childCtx)
-			thisClient.chCLIStr <- tCliMsg{
+			thisClient.printListSummary(childCtx, chOutPut)
+			chOutPut <- tCliMsg{
 				text:    "PingerID? ",
 				color:   cliColorDefault,
 				noBreak: true,
@@ -635,16 +634,16 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			case pingerID = <-chStdinText:
 			}
 
-			thisClient.result(childCtx, pingerID)
+			thisClient.result(childCtx, chOutPut, pingerID)
 		case "c", "co", "cou", "coun", "count":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "[count]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
 
-			thisClient.printListSummary(childCtx)
-			thisClient.chCLIStr <- tCliMsg{
+			thisClient.printListSummary(childCtx, chOutPut)
+			chOutPut <- tCliMsg{
 				text:    "PingerID? ",
 				color:   cliColorDefault,
 				noBreak: true,
@@ -658,23 +657,23 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 			case pingerID = <-chStdinText:
 			}
 
-			thisClient.count(childCtx, pingerID)
+			thisClient.count(childCtx, chOutPut, pingerID)
 		case "q", "qu", "qui", "quit":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "[quit]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
 			return
 		case "e", "ex", "exi", "exit":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text:    "[exit]",
 				color:   cliColorDefault,
 				noBreak: false,
 			}
 			return
 		case "?", "h", "he", "hel", "help":
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text: "" +
 					"start  : start pinger\n" +
 					"stop   : stop pinger\n" +
@@ -694,7 +693,7 @@ func (thisClient *tClientWrap) interactive(ctx context.Context) {
 		case "":
 			logger.Log(labelinglog.FlgDebug, "input empty")
 		default:
-			thisClient.chCLIStr <- tCliMsg{
+			chOutPut <- tCliMsg{
 				text: "" +
 					"unknown command \"" + command + "\"\n" +
 					"? : show commands",

@@ -220,12 +220,11 @@ func subMain() {
 		client := tClientWrap{
 			client:   pb.NewPingerClient(conn),
 			chCancel: chCancel,
-			chCLIStr: chCLIStr,
 			config:   config,
 		}
 
 		if isInteractive {
-			client.interactive(childCtx)
+			client.interactive(childCtx, chCLIStr)
 		} else {
 			var subCommand = flag.Args()[0]
 			var subCommandArgs = flag.Args()[1:]
@@ -307,9 +306,9 @@ func subMain() {
 						return
 					}
 
-					client.start(childCtx, descStr, targetList)
+					client.start(childCtx, chCLIStr, descStr, targetList)
 				} else {
-					client.chCLIStr <- tCliMsg{
+					chCLIStr <- tCliMsg{
 						text:    "Please enter \"target list path\"",
 						color:   cliColorDefault,
 						noBreak: false,
@@ -323,9 +322,9 @@ func subMain() {
 					noBreak: false,
 				}
 				if len(subCommandArgs) >= 1 {
-					client.stop(childCtx, subCommandArgs[0])
+					client.stop(childCtx, chCLIStr, subCommandArgs[0])
 				} else {
-					client.chCLIStr <- tCliMsg{
+					chCLIStr <- tCliMsg{
 						text:    "Please enter \"pingerID\"",
 						color:   cliColorDefault,
 						noBreak: false,
@@ -334,35 +333,35 @@ func subMain() {
 				}
 			case "l", "li", "lis", "list":
 				if len(subCommandArgs) < 1 {
-					client.chCLIStr <- tCliMsg{
+					chCLIStr <- tCliMsg{
 						text:    "[list]",
 						color:   cliColorDefault,
 						noBreak: false,
 					}
-					client.printListSummary(childCtx)
+					client.printListSummary(childCtx, chCLIStr)
 				} else {
 					switch subCommandArgs[0] {
 					case "l", "lo", "lon", "long":
-						client.chCLIStr <- tCliMsg{
+						chCLIStr <- tCliMsg{
 							text:    "[list long]",
 							color:   cliColorDefault,
 							noBreak: false,
 						}
-						client.printList(childCtx)
+						client.printList(childCtx, chCLIStr)
 					case "s", "sh", "sho", "shor", "short":
-						client.chCLIStr <- tCliMsg{
+						chCLIStr <- tCliMsg{
 							text:    "[list short]",
 							color:   cliColorDefault,
 							noBreak: false,
 						}
-						client.printListVeryShort(childCtx)
+						client.printListVeryShort(childCtx, chCLIStr)
 					default:
-						client.chCLIStr <- tCliMsg{
+						chCLIStr <- tCliMsg{
 							text:    "[list]",
 							color:   cliColorDefault,
 							noBreak: false,
 						}
-						client.printListSummary(childCtx)
+						client.printListSummary(childCtx, chCLIStr)
 					}
 				}
 			case "i", "in", "inf", "info":
@@ -372,9 +371,9 @@ func subMain() {
 					noBreak: false,
 				}
 				if len(subCommandArgs) >= 1 {
-					client.info(childCtx, subCommandArgs[0])
+					client.info(childCtx, chCLIStr, subCommandArgs[0])
 				} else {
-					client.chCLIStr <- tCliMsg{
+					chCLIStr <- tCliMsg{
 						text:    "Please enter \"pingerID\"",
 						color:   cliColorDefault,
 						noBreak: false,
@@ -388,9 +387,9 @@ func subMain() {
 					noBreak: false,
 				}
 				if len(subCommandArgs) >= 1 {
-					client.result(childCtx, subCommandArgs[0])
+					client.result(childCtx, chCLIStr, subCommandArgs[0])
 				} else {
-					client.chCLIStr <- tCliMsg{
+					chCLIStr <- tCliMsg{
 						text:    "Please enter \"pingerID\"",
 						color:   cliColorDefault,
 						noBreak: false,
@@ -404,9 +403,9 @@ func subMain() {
 					noBreak: false,
 				}
 				if len(subCommandArgs) >= 1 {
-					client.count(childCtx, subCommandArgs[0])
+					client.count(childCtx, chCLIStr, subCommandArgs[0])
 				} else {
-					client.chCLIStr <- tCliMsg{
+					chCLIStr <- tCliMsg{
 						text:    "Please enter \"pingerID\"",
 						color:   cliColorDefault,
 						noBreak: false,
