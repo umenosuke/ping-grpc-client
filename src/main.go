@@ -220,6 +220,7 @@ func subMain() {
 		client := tClientWrap{
 			client:   pb.NewPingerClient(conn),
 			chCancel: chCancel,
+			wgFinish: &sync.WaitGroup{},
 			config:   config,
 		}
 
@@ -444,6 +445,8 @@ func subMain() {
 				return
 			}
 		}
+
+		client.wgFinish.Wait()
 	})()
 
 	{

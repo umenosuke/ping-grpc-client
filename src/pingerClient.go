@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -23,6 +24,7 @@ import (
 type tClientWrap struct {
 	client   pb.PingerClient
 	chCancel <-chan struct{}
+	wgFinish *sync.WaitGroup
 	config   Config
 }
 
