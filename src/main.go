@@ -138,6 +138,7 @@ func subMain() {
 	childCtx, childCtxCancel := context.WithCancel(ctx)
 	defer childCtxCancel()
 	wgFinish := &sync.WaitGroup{}
+	wgFinishLog := &sync.WaitGroup{}
 
 	chCancel := make(chan struct{}, 5)
 	wgFinish.Add(1)
@@ -165,47 +166,37 @@ func subMain() {
 
 	enableColor := !argNoColor && runtime.GOOS != "windows"
 	chCLIStr := make(chan tCliMsg, 200)
-	wgFinish.Add(1)
+	wgFinishLog.Add(1)
 	go (func() {
-		defer wgFinish.Done()
-		for {
-			select {
-			case <-time.After(time.Second):
-			case msg := <-chCLIStr:
-				str := ""
+		defer wgFinishLog.Done()
+		for msg := range chCLIStr {
+			str := ""
 
-				if enableColor {
-					switch msg.color {
-					case cliColorRed:
-						str += "\x1b[41m\x1b[37m"
-					case cliColorGreen:
-						str += "\x1b[42m\x1b[37m"
-					case cliColorBlue:
-						str += "\x1b[44m\x1b[37m"
-					case cliColorYellow:
-						str += "\x1b[43m\x1b[37m"
-					case cliColorDefault:
-						str += "\x1b[49m\x1b[39m"
-					}
-				}
-
-				str += msg.text
-
-				if enableColor {
+			if enableColor {
+				switch msg.color {
+				case cliColorRed:
+					str += "\x1b[41m\x1b[37m"
+				case cliColorGreen:
+					str += "\x1b[42m\x1b[37m"
+				case cliColorBlue:
+					str += "\x1b[44m\x1b[37m"
+				case cliColorYellow:
+					str += "\x1b[43m\x1b[37m"
+				case cliColorDefault:
 					str += "\x1b[49m\x1b[39m"
 				}
-
-				if msg.noBreak {
-					fmt.Print(str)
-				} else {
-					fmt.Println(str)
-				}
-				continue
 			}
-			select {
-			case <-childCtx.Done():
-				return
-			default:
+
+			str += msg.text
+
+			if enableColor {
+				str += "\x1b[49m\x1b[39m"
+			}
+
+			if msg.noBreak {
+				fmt.Print(str)
+			} else {
+				fmt.Println(str)
 			}
 		}
 	})()
@@ -469,6 +460,11 @@ func subMain() {
 		case <-time.After(time.Duration(terminateTimeOutSec) * time.Second):
 			logger.Log(labelinglog.FlgWarn, "forced termination")
 		}
+	}
+
+	{
+		close(chCLIStr)
+		wgFinishLog.Wait()
 	}
 
 	if enableColor {
