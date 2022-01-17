@@ -145,7 +145,7 @@ func subMain() {
 	go (func() {
 		defer wgFinish.Done()
 		defer childCtxCancel()
-		c := make(chan os.Signal)
+		c := make(chan os.Signal, 2)
 		signal.Notify(c, syscall.SIGINT, os.Interrupt)
 		for {
 			select {
