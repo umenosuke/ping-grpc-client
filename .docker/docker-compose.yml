@@ -6,7 +6,6 @@ services:
       target: go
     tty: true
     user: "${_USER}"
-    privileged: true
     container_name: proto_go_build_${_PRJ_NAME}
     volumes:
       - "../:/target_data:ro"
@@ -15,7 +14,6 @@ services:
     build: go_build
     tty: true
     user: "${_USER}"
-    privileged: true
     container_name: go_build_${_PRJ_NAME}
     volumes:
       - "../:/target_data:rw"

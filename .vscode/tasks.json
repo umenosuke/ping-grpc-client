@@ -71,8 +71,6 @@
             "label": "build",
             "dependsOrder": "sequence",
             "dependsOn": [
-                "typescript build in container",
-                "sass build in container",
                 "go-build"
             ],
             "group": {
